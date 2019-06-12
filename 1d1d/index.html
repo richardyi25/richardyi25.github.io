@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>1D1D DP: A Dynamic Programming Optimization</title>
+		<link rel="stylesheet" href="style.css">
+		<script src="script.js"></script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+	</head>
+	<body>
+		<div id="title">
+			1D1D DP: A Dynamic Programming Optimization
+		</div>
+
+		<div id="prereq">
+			<div class="heading">Pre-Requisite Knowledge</div>
+			<div class="content">
+				This artcile will assume you have some knowledge about the following:
+				<ul>
+					<li>Time Complexity</li>
+					<li>Basic Dynamic Programming</li>
+					<li>Binary Search</li>
+					<li>Stack (Data Structure)</li>
+				</ul>
+			</div>
+		</div>
+
+		<div id="toc">
+			<ul>
+				<li><a href="#motivation">A Motivation Problem</a></li>
+				<li><a href="#relation">The 1D1D Relation</a></li>
+				<li><a href="#quad">The Quadrangle Inequality</a></li>
+				<li><a href="#o_nlogn">The O(N log N) Technique</a></li>
+				<li><a href="#o_n">The O(N) Technique</a></li>
+			</ul>
+		</div>
+
+		<div id="body">
+			<div id="credit" class="section">
+				<div class="heading">Credit</div>
+				<div class="content">
+					This article is heavily based off of <a href="https://sites.google.com/site/ubcprogrammingteam/news/1d1ddynamicprogrammingoptimization-parti">this one</a>.
+					Please go check it out before or after you read this one.
+				</div>
+			</div>
+
+			<div id="motivation" class="section">
+				<div class="heading">A Motivation Problem</div>
+				<div class="content">
+					Perhaps the simplest problem that this technique can be applied to is <a href="https://dmoj.ca/problem/hci16police">Cheapest Operation Ever</a>.
+					<br> <br>
+					To summarize the problem statement, there are \(N\) criminals standing in a straight line, at positive integer coordinate points. The \(i\)-th criminal is standing at point \(a_i\)
+					<br>
+					You can hire a cop for \(K\) dollars (originally \(H\) in the problem statement), who will be deployed to any point with no additional charge. 
+					<br>
+					You can also instruct any cop to travel any amount of distance, but the amount of fuel is equal to the square of the distance travelled.
+					<br>
+					If a cop is at any time in the same point as a criminal, they immediate catch the criminal with no additional cost.
+					<br>
+					Given all the positions and \(K\), what is the minimum cost to catch all criminals?
+					<br>
+					Contraints: \(N \leq 10^5\), \(H, a_i \leq 10^6\)
+					<br><br>
+					A dynamic programming solution emerges. We will use 1-indexing, so the criminals are numbered from \(1\) to \(N\).
+					<br>
+					Let \(d_i\) be the minimum cost of catching the first \(i\) criminals.
+					<br>
+					We notice in order to catch the first \(i\) criminals, we can pick some \(j\) such that \(j < i\)
+					and assign a cop to all criminals between \(j + 1\) and \(i\), inclusive.
+					<br>
+					The cost of catching the first \(i\)
+					criminals is then the cost of hiring the cost of the new cop, \(K\), plus fuel, \( (a_i - a_{j + 1} )^2 \)
+					, plus the minimum cost of catching the first \(j\) criminals.
+					<br>
+					In other words, for some \(j < i\)
+					\[
+						d_i = d_j + (a_i - a_{j + 1})^2 + K
+					\]
+					<br>
+					Also, we notice that to minimize the overall value, we can check all values such that \(j < i\)
+					<br>
+					We can write this as
+					\[
+						d_i = \min_{j = 1}^{i - 1} \left[ d_j + (a_i - a_{j + 1})^2 + K \right]
+					\]
+					<br>
+					Since at each iteration we rely on \(i - 1\) previous states, the number of operations is
+					\( 0 + 1 + 2 + 3 + \dots + N - 1 \), which is \( O(N^2) \).
+					<br>
+					This time complexity is not enough to pass \( N \leq 10^5 \), so some optimization is needed.
+				</div>
+			</div>
+
+			<div id="relation" class="section">
+				<div class="heading">The 1D1D Relation</div>
+				<div class="content">
+					The name 1D1D refers to a dynamic programming recurrence relation with one dimension (1D) of states
+					which each rely on one dimension (1D) states.
+					<br>
+					The recurrence relation above can be generalized to a special form:
+					\[
+						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					<center>or</center>
+					\[
+						d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					<br>
+					\( f(i, j) \) is some "cost" or "weight" function associated with both \(i\) and \(j\).
+					In the motivation problem, \( f(i, j) = (a_i - a_{j + 1})^2 + K \).
+					<br>
+					If \( f(i, j) \) satisfies a special property called the <b>Quadrangle Inequality</b>, then
+					we can use a technique to bring the time complexity down from \( O(N^2) \) to \( O(N \log N) \) or in
+					some cases \( O(N) \). This technique is called 1D1D DP.
+				</div>
+			</div>
+
+			<div id="quad" class="section">
+				<div class="heading">The Quadrangle Inequality</div>
+				<div class="content">
+					This optimization works if and only if for the recurrence
+					\[
+						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					<center> \( f(i, j) \) satisfies </center>
+					\[
+						f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
+					\]
+					and for the recurrence
+					\[
+						d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					<center> \( f(i, j) \) satisfies </center>
+					\[
+						f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
+					\]
+				</div>
+			</div>
+
+			<div id="filler" class="section">
+				<div class="heading"></div>
+				<div class="content"></div>
+			</div>
+
+			<div id="filler" class="section">
+				<div class="heading"></div>
+				<div class="content"></div>
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,22 @@
+body{
+	font: 16px Verdana, Sans;
+}
+
+body > div{
+	margin: 20px;
+}
+
+#title{
+	font-size: 30px;
+	text-decoration: underline;
+}
+
+.heading{
+	font-size: 20px;
+	font-weight: bold;
+}
+
+#body > div{
+	margin-top: 50px;
+	padding: 10px;
+}
