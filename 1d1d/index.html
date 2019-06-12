@@ -26,12 +26,18 @@
 		</div>
 
 		<div id="toc">
+			<div class="heading">Table of Contents</div>
 			<ul>
-				<li><a href="#motivation">A Motivation Problem</a></li>
-				<li><a href="#relation">The 1D1D Relation</a></li>
-				<li><a href="#quad">The Quadrangle Inequality</a></li>
-				<li><a href="#o_nlogn">The O(N log N) Technique</a></li>
-				<li><a href="#o_n">The O(N) Technique</a></li>
+				<li><a href="#motivation">Motivation Problem</a></li>
+				<li><a href="#relation">Introducing: 1D1D DP</a></li>
+				<li><a href="#mono">Monotonic Property</a></li>
+				<li><a href="#quad">Quadrangle Inequality</a></li>
+				<li><a href="#equiv">Proof of Equivalence</a></li>
+				<li><a href="#o_nsquared">O(N²) Technique</a></li>
+				<li><a href="#o_nlogn">O(N log N) Technique</a></li>
+				<li><a href="#o_n">O(N) Technique</a></li>
+				<li><a href="#recognize">Recognizing the Quadrangle Inequality</li>
+				<li><a href="#notes">Additional Notes</a></li>
 			</ul>
 		</div>
 
@@ -76,14 +82,12 @@
 					\[
 						d_i = d_j + (a_i - a_{j + 1})^2 + K
 					\]
-					<br>
-					Also, we notice that to minimize the overall value, we can check all values such that \(j < i\)
+					Also, we notice that to minimize the overall value, we can check all \( j \) such that \(j < i\) and take the \( j \) that minimizes the total value.
 					<br>
 					We can write this as
 					\[
 						d_i = \min_{j = 1}^{i - 1} \left[ d_j + (a_i - a_{j + 1})^2 + K \right]
 					\]
-					<br>
 					Since at each iteration we rely on \(i - 1\) previous states, the number of operations is
 					\( 0 + 1 + 2 + 3 + \dots + N - 1 \), which is \( O(N^2) \).
 					<br>
@@ -92,60 +96,137 @@
 			</div>
 
 			<div id="relation" class="section">
-				<div class="heading">The 1D1D Relation</div>
+				<div class="heading">Introducing: 1D1D DP</div>
 				<div class="content">
 					The name 1D1D refers to a dynamic programming recurrence relation with one dimension (1D) of states
 					which each rely on one dimension (1D) states.
 					<br>
-					The recurrence relation above can be generalized to a special form:
-					\[
-						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					<center>or</center>
-					\[
-						d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					<br>
-					\( f(i, j) \) is some "cost" or "weight" function associated with both \(i\) and \(j\).
+					The recurrence relation above can be generalized to all relations that satisfy this form:
+					<div class="block">
+						<div class="block-header">General Form</div>
+						\[
+							d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+					</div>
+					where \( f(i, j) \) is some "cost" or "weight" function associated with both \(i\) and \(j\).
 					In the motivation problem, \( f(i, j) = (a_i - a_{j + 1})^2 + K \).
 					<br>
-					If \( f(i, j) \) satisfies a special property called the <b>Quadrangle Inequality</b>, then
+					If \( f(i, j) \) satisfies a special property called the <b>Monotonic Property</b>, then
 					we can use a technique to bring the time complexity down from \( O(N^2) \) to \( O(N \log N) \) or in
 					some cases \( O(N) \). This technique is called 1D1D DP.
 				</div>
 			</div>
 
-			<div id="quad" class="section">
-				<div class="heading">The Quadrangle Inequality</div>
+			<div id="mono" class="section">
+				<div class="heading">Monotonic Property</div>
 				<div class="content">
-					This optimization works if and only if for the recurrence
+					In the motivation problem and several other similar problems, there is a useful property
+					within the recurrence relation.
+					<br>
+					Recall that the general recurrence relation for 1D1D DP is 
 					\[
 						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 					\]
-					<center> \( f(i, j) \) satisfies </center>
+					Let's define \( g_i \) to be the value of \( j \) that you use to in order to compute
+					the value of \( d_i \), i.e. the value of \( j (j < i) \) for which \( d_j + f(i, j) \)
+					is minimized. We can write this in math notation as
 					\[
-						f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
+						g_i = \text{arg}\min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 					\]
-					and for the recurrence
+					The <b>Monotonic Property</b> is satisfied if as \( i \) increases, \( g_i \) does not decrease.
+					<br>
+					This can be expressed in math notation in two equivalent statements:
+
+					<div class="block">
+						<div class="block-header">Monotonic Property</div>
+						\[
+							\forall i, g(i) \leq g(i + 1)
+						\]
+						<center>and<center>
+						\[
+						   \forall i' > i, g(i') \geq g(i)
+						\]
+					</div>
+				</div>
+				
+				This property is what allows us to reduce the time complexity to \( O(N \log N) \) or \( O(N) \).
+				<br>
+				In later sections, we'll how to take advantage of this property and how to recognize it.
+			</div>
+
+			<div id="quad" class="section">
+				<div class="heading">The Quadrangle Inequality</div>
+				<div class="content">
+					Recall that the general recurrence relation for 1D1D DP is 
 					\[
-						d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 					\]
-					<center> \( f(i, j) \) satisfies </center>
-					\[
-						f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
-					\]
+					The <b>Monotonic Property</b> can be recognized just by analyzing \( f(i, j) \).
+					<br>
+					More specifically, the <b>Monotonic Property</b> is satisfied if and only if the
+					<b>Quadrangle Inequality</b> on \( f(i, j) \) is satisfied.
+					<div class="block">
+						<div class="block-header">Quadrangle Inequality</div>
+						\[
+							f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
+						\]
+					</div>
+				</div>
+				To illustrate
+			</div>
+
+			<div id="equiv" class="section">
+				<div class="heading">Proof of Equivalence</div>
+				<div class="content"></div>
+			</div>
+
+			<div id="o_nsquared" class="section">
+				<div class="heading">The O(N²) Technique</div>
+				<div class="content"></div>
+			</div>
+
+			<div id="o_nlogn" class="section">
+				<div class="heading">The O(N log N) Technique</div>
+				<div class="content"></div>
+			</div>
+
+			<div id="o_n" class="section">
+				<div class="heading">The O(N) Technique</div>
+				<div class="content">
+					
 				</div>
 			</div>
 
-			<div id="filler" class="section">
-				<div class="heading"></div>
+			<div id="recognize" class="section">
+				<div class="heading">Recognizing the Quadrangle Inequality</div>
 				<div class="content"></div>
 			</div>
 
-			<div id="filler" class="section">
-				<div class="heading"></div>
+			<div id="notes" class="section">
+				<div class="heading">Additional Notes</div>
+				<div class="content">
+					This technique also works if you replace \( \min \) with \( \max \).
+					<br>
+					It applies to recurrences of the form
+					\[
+						d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					if and only if \( f(i, j) \) satisfies for all \( j \leq i \),
+					\[
+						f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
+					\]
+					
+				</div>
+			</div>
+
+			<!--
+
+			<div id="template" class="section">
+				<div class="heading">Recognizing the Quadrangle Inequality</div>
 				<div class="content"></div>
 			</div>
+
+			-->
 		</div>
 	</body>
 </html>

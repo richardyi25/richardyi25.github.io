@@ -1,5 +1,6 @@
 body{
 	font: 16px Verdana, Sans;
+	background-color: #FFFFF7;
 }
 
 body > div{
@@ -14,9 +15,35 @@ body > div{
 .heading{
 	font-size: 20px;
 	font-weight: bold;
+	margin-bottom: 10px;
 }
 
-#body > div{
-	margin-top: 50px;
-	padding: 10px;
+#prereq, #toc, #body > div{
+	margin-top: 30px;
+	border: 1px solid gray;
+	border-radius: 5px;
+	padding: 20px 20px 15px 20px;
+	background-color: #FFFDEC;
+}
+
+#toc li{
+	margin-bottom: 2px;
+}
+
+a{
+	color: blue;
+}
+
+.block{
+	margin: 20px auto 20px auto;
+	width: 70%;
+	border: 1px solid black;
+	border-radius: 5px;
+	padding: 15px;
+	background-color: #F8EDDC;
+}
+
+.block-header{
+	font-weight: bold;
+	font-size: 18px;
 }
