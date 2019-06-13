@@ -55,7 +55,7 @@
 				<div class="content">
 					Perhaps the simplest problem that this technique can be applied to is <a href="https://dmoj.ca/problem/hci16police">Cheapest Operation Ever</a>.
 					<br> <br>
-					To summarize the problem statement, there are \(N\) criminals standing in a straight line, at positive integer coordinate points. The \(i\)-th criminal is standing at point \(a_i\)
+					To summarize the problem statement, there are \(N\) criminals standing in a straight line, at positive integer coordinate points given from left to right. The \(i\)-th criminal is standing at point \(a_i\).
 					<br>
 					You can hire a cop for \(K\) dollars (originally \(H\) in the problem statement), who will be deployed to any point with no additional charge. 
 					<br>
@@ -172,7 +172,49 @@
 						\]
 					</div>
 				</div>
-				To illustrate
+				To illustrate how we can prove the Quadrangle Inequality for a recurrence, let's look at the motivation problem, which had the recurrence
+				\[
+					d_i = \min_{j = 1}^{i - 1} \left[ d_j + (a_i - a_{j + 1})^2 + K \right]
+				\]
+				and so in this case, \( f(i, j) = (a_i - a_{j + 1})^2 + K \).
+				<br><br>
+				We now wish to prove that \( f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1) \)
+				\[ \begin{align}
+					\require{cancel}
+					f(i, j) + f(i + 1, j + 1) & \leq f(i + 1, j) + f(i, j + 1)
+					\\
+					\left[(a_i - a_{j + 1})^2 + K\right] + \left[(a_{i + 1} - a_{j + 2})^2 + K\right] & \leq \left[(a_{i + 1} - a_{j + 1})^2 + K\right] + \left[(a_i - a_{j + 2})^2 + K\right]
+					\\
+					\left[(a_i - a_{j + 1})^2 \cancel{+ K} \right] + \left[(a_{i + 1} - a_{j + 2})^2 \cancel{+ K} \right] & \leq \left[(a_{i + 1} - a_{j + 1})^2 \cancel{+ K} \right] + \left[(a_i - a_{j + 2})^2 \cancel{+ K} \right]
+					\\
+					\left[(a_i - a_{j + 1})^2\right] + \left[(a_{i + 1} - a_{j + 2})^2\right] & \leq \left[(a_{i + 1} - a_{j + 1})^2\right] + \left[(a_i - a_{j + 2})^2\right]
+					\\
+					\left[a_i^2 - 2 a_i a_{j + 1} + a_{j + 1}^2\right] + \left[a_{i + 1}^2 - 2 a_{i + 1} a_{j + 2} + a_{j + 2}^2\right] & \leq \left[a_{i + 1}^2 - 2 a_{i + 1} a_{j + 1} + a_{j + 1}^2\right] + \left[a_i^2 - 2 a_i a_{j + 2} + a_{j + 2}^2\right]
+					\\
+					\left[\cancel{a_i^2} - 2 a_i a_{j + 1} + \cancel{a_{j + 1}^2} \right] + \left[\cancel{a_{i + 1}^2} - 2 a_{i + 1} a_{j + 2} + \cancel{a_{j + 2}^2} \right] & \leq \left[\cancel{a_{i + 1}^2} - 2 a_{i + 1} a_{j + 1} + \cancel{a_{j + 1}^2} \right] + \left[\cancel{a_i^2} - 2 a_i a_{j + 2} + \cancel{a_{j + 2}^2} \right]
+					\\
+					- 2 a_i a_{j + 1} - 2 a_{i + 1} a_{j + 2} & \leq  - 2 a_{i + 1} a_{j + 1} - 2 a_i a_{j + 2}
+					\\
+					- 2 \left(a_i a_{j + 1} + a_{i + 1} a_{j + 2}\right) & \leq  - 2 \left(a_{i + 1} a_{j + 1} + a_i a_{j + 2}\right)
+					\\
+					a_i a_{j + 1} + a_{i + 1} a_{j + 2} & \geq a_{i + 1} a_{j + 1} + a_i a_{j + 2}
+					\\
+					a_i a_{j + 1} + a_{i + 1} a_{j + 2} - a_{i + 1} a_{j + 1} - a_i a_{j + 2} & \geq 0
+					\\
+					\left(a_i - a_{i + 1}\right)\left(a_{j + 1} - a_{j + 2}\right) & \geq 0
+				\end{align} \]
+				<br>
+				Note that the criminals are given left to right, so for any \( i \), \( a_i < a_{i + 1} \)
+				<br>
+				Since \( a_i < a_{i + 1} \), \( a_i - a_{i + 1} < 0\)
+				<br>
+				Since \( a_{j + 1} < a_{i + 2} \), \( a_{j + 1}- a_{j + 2} < 0\)
+				<br>
+				The product of two negative numbers is always positive, so the statement we arrived at
+				\[
+					\left(a_i - a_{i + 1}\right)\left(a_{j + 1} - a_{j + 2}\right) \geq 0
+				\]
+				is indeed true. Therefore, the Quadrangle Inequality is satisfied for \( f(i, j) = (a_i - a_{j + 1})^2 + K \). \( \square \)
 			</div>
 
 			<div id="equiv" class="section">
@@ -215,7 +257,6 @@
 					\[
 						f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
 					\]
-					
 				</div>
 			</div>
 
