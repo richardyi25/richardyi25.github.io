@@ -1,7 +1,10 @@
 <!-- TODO : j = 0, not j = 1, fix the f(x), f[x], f_x notation -->
 <!-- maybe normalize the section names -->
+<!-- also, make some sections less wordy -->
+<!-- fix the awful title tags for all sites -->
 
 <!DOCTYPE html>
+
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -11,6 +14,12 @@
 	</head>
 
 	<body>
+		<div id="preamble">
+			\[
+				\DeclareMathOperator*{\argmax}{argmax}
+			\]
+		</div>
+
 		<div id="title">
 			1D1D DP: A Dynamic Programming Optimization
 		</div>
@@ -66,8 +75,20 @@
 						<li>Deque</li>
 					</ul>
 
-					Additionally, to clear up some notation, \( arr[] \) denotes an array named \( arr \), which would be
-					\( func() \) denotes
+					<!-- TODO a[i] vs f(i), and also do you use subscripts, and one-letter array/funcs maybe? -->
+					
+					<p>
+						To review math notation, the \( \max \) operator works like \( \sum \), except instead of summing
+						the value to the right in all iterations, the maximum value across all iterations is taken.
+						The \( \argmax \) operator is similar, but it instead represents the value of the iterated variable
+						that yields the maximum.
+					</p>
+
+					<p>
+						Also, the \( \forall \) symbol means "for all" and the \( \exists \) symbol means "there exists".
+						For example, the statement \( \forall x, \exists y \gt x: f(x, y) = 1 \) should read as "For all \( x \),
+						there exists some \( y \gt x \) such that \( f(x, y) = 1 \).
+					</p>
 				</div>
 			</div>
 
@@ -133,7 +154,7 @@
 					<p>
 						The recurrence relation above can be generalized to all relations that satisfy this form:
 						<div class="block">
-							<div class="block-header">General Form</div>
+							<div class="block-heading">General Form</div>
 							\[
 								dp[i] = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 							\]
@@ -154,7 +175,7 @@
 					The Quadrangle Inequality is a property of \( f(i, j) \), which if satisfied, implies two other
 					properties: the Monotonic Property and the Turning Point Property.
 					<div class="block">
-						<div class="block-header">Quadrangle Inequality</div>
+						<div class="block-heading">Quadrangle Inequality</div>
 						\[
 							\forall j \lt i,
 							f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
@@ -207,11 +228,11 @@
 						the value of \( dp[i] \), i.e. the value of \( j (j \lt i) \) for which \( dp[j] + f(i, j) \)
 						is minimized. (The \( opt \) comes from "optimal"). We can write this in math notation as
 						<div class="block">
-							<div class="block-header">
+							<div class="block-heading">
 								Definition of \( opt(i) \)
 							</div>
 							\[
-								opt(i) = \text{arg}\min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+								opt(i) = \argmax_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 							\]
 						</div>
 						The <b>Monotonic Property</b> is satisfied if as \( i \) increases, \( opt(i) \) does not decrease.
@@ -221,7 +242,7 @@
 						This can be expressed in math notation in two equivalent statements:
 
 						<div class="block">
-							<div class="block-header">Monotonic Property</div>
+							<div class="block-heading">Monotonic Property</div>
 							\[
 								\forall i, opt(i) \leq opt(i + 1)
 							\]
@@ -230,6 +251,10 @@
 							   \forall i \lt i', opt(i) \leq opt(i')
 							\]
 						</div>
+					</p>
+
+					<p>
+						You can read the proof that the Quadrangle Inequality proves the Monotonic Property <a href="proof1.html">here</a>.
 					</p>
 				</div>
 			</div>
@@ -251,7 +276,7 @@
 					<p>
 						This can be written in math notation as:
 						<div class="block">
-							<div class="block-header">Turning Point Property</div>
+							<div class="block-heading">Turning Point Property</div>
 							\[
 								\forall j \lt k, \exists i:
 								\\
@@ -286,7 +311,10 @@
 
 			<div id="o_nlogn" class="section">
 				<div class="heading">The O(N log N) Technique</div>
-				<div class="content"></div>
+				<div class="content">
+					The Turning Point Property can be taken advantage of. A deque containing possible values for \( opt(i) \)
+					is maintained 
+				</div>
 			</div>
 
 			<div id="o_n" class="section">
@@ -306,47 +334,16 @@
 				<div class="heading">Recognizing the Quadrangle Inequality</div>
 				<div class="content">
 					<p>
-						To illustrate how we can prove the Quadrangle Inequality for a recurrence, let's look at a very simple recurrence relation:
-						\[
-							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + K - (arr[i] - arr[j]) \right]
-						\]
-						Where \( arr[] \) is a given non-decreasing array and \( K \) is a given constant.
+						To illustrate how we can prove the Quadrangle Inequality for a recurrence, <a href="quad.html">here</a> is an example of an algebraic proof
+						for the motivation problem, APIO Commando.
 					</p>
 
 					<p>
-						In this case, \( f(i, j) = K - (arr[i] - arr[j])^2 \). Now, the Quadrangle Inequality for \( f(i, j) \) can be proven algebraically.
-					</p>
-
-					<p>
-						\[ \begin{align}
-							\require{cancel}
-
-							\small
-							f(i, j) + f(i + 1, j + 1)
-							\small
-							&
-							\small \ 
-							\leq \ 
-							f(i + 1, j) + f(i, j + 1) \\
-
-							\small
-							\left( K - (arr[i] - arr[j])^2 \right)
-							+ \left( K - (arr[i + 1] - arr[j + 1])^2 \right)
-							&
-							\small \ 
-							\leq \ 
-							\left( K - (arr[i + 1] - arr[j])^2 \right)
-							+ \left( K - (arr[i] - arr[j + 1])^2 \right)
-
-							\small
-							\left( K - (arr[i] - arr[j])^2 \right)
-							+ \left( K - (arr[i + 1] - arr[j + 1])^2 \right)
-							&
-							\small \ 
-							\leq \ 
-							\left( K - (arr[i + 1] - arr[j])^2 \right)
-							+ \left( K - (arr[i] - arr[j + 1])^2 \right)
-						\end{align} \]
+						While it is possible to write out, expand, and factor terms by hand on paper, it might be more viable,
+						especially during contest, to abandon trying to prove the Quadrangle Inequality. Instead, the naive
+						\( O(N^2) \) solution can be coded up, (not the optimzied version discussed in this article), and if the
+						values of \( opt(i) \) can be printed out. If \( opt(i) \) does not decrease for several small test inputs,
+						the Quandrangle Inequality is <i>probably</i> satisfied.
 					</p>
 				</div>
 			</div>
@@ -413,8 +410,8 @@
 					</p>
 
 					<p>
-						In the induction step, for all \( a > 1\), if
-						In the induction step, for \( b > 1 \), if
+						In the induction step, for all \( a \gt 1\), if
+						In the induction step, for \( b \gt 1 \), if
 						\[
 							f(x + a, y + b) - f(x + a, y) \leq f(x, y + b) - f(x, y)
 						\]

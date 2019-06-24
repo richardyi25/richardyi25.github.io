@@ -1,7 +1,14 @@
 body{
+	margin: 20px;
 	font: 16px Verdana, Sans;
 	background-color: #FFFFF7;
 	line-height: 1.3;
+}
+
+#preamble{
+	background-color: yellow;
+	border: 5px solid red;
+	display: none;
 }
 
 #title{
@@ -18,7 +25,7 @@ body{
 
 #toc, #body > div{
 	margin: 15px auto 15px auto;
-	width: 75%;
+	width: 85%;
 	border: 1px solid gray;
 	border-radius: 5px;
 	padding: 25px 20px 15px 20px;
@@ -42,7 +49,7 @@ a{
 	background-color: #F8EDDC;
 }
 
-.block-header{
+.block-heading{
 	font-weight: bold;
 	font-size: 18px;
 }
