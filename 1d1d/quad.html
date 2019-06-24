@@ -1,0 +1,95 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>1D1D DP: A Dynamic Programming Optimization</title>
+		<link rel="stylesheet" href="style.css">
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+	</head>
+
+	<body>
+		<!-- TODO: Turn p[i] into p_i -->
+		<div class="header"></div>
+		Recall that \( f(i, j) = A(psa[i] - psa[j])^2 + B(psa[i] - psa[j]) + C \).
+		Also, for the sake of saving space, \( psa[i] \) will be denoted as \( p[i] \). Even so, the math will overflow far to the right.
+		\[ \begin{align}
+			\require{cancel}
+			\tiny
+			f(i, j) + f(i + 1, j + 1)
+			&
+			\tiny
+			\geq
+			f(i + 1, j) + f(i, j + 1)
+			\\
+			
+			\tiny
+			\left( A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \right)
+			+ \left( A(p[i + 1] - p[j + 1])^2 + B(p[i + 1] - p[j + 1]) + C \right)
+			&
+			\tiny
+			\geq
+			\left( A(p[i + 1] - p[j])^2 + B(p[i + 1] - p[j]) + C \right)
+			+ \left( A(p[i] - p[j + 1])^2 + B(p[i] - p[j + 1]) + C \right)
+
+			\\
+
+			\tiny
+			\left( Ap[i]^2 - 2Ap[i]p[j] + Ap[j]^2 + Bp[i] - Bp[j] + C \right )
+			+ \left( Ap[i + 1]^2 - 2Ap[i + 1]p[j + 1] + Ap[j + 1]^2 + Bp[i + 1] - Bp[j + 1] + C \right )
+			&
+			\tiny
+			\geq
+			\left( Ap[i + 1]^2 - 2Ap[i + 1]p[j] + Ap[j]^2 + Bp[i + 1] - Bp[j] + C \right )
+			+ \left( Ap[i]^2 - 2Ap[i]p[j + 1] + Ap[j + 1]^2 + Bp[i] - Bp[j + 1] + C \right )
+
+			\\
+
+			\tiny
+			\left( \cancel{Ap[i]^2} - 2Ap[i]p[j] + \cancel{Ap[j]^2} + \cancel{Bp[i]} - \cancel{Bp[j]} + \cancel{C} \right )
+			+ \left( \cancel{Ap[i + 1]^2} - 2Ap[i + 1]p[j + 1] + \cancel{Ap[j + 1]^2} + \cancel{Bp[i + 1]} - \cancel{Bp[j + 1]} + \cancel{C} \right )
+			&
+			\tiny
+			\geq
+			\left( \cancel{Ap[i + 1]^2} - 2Ap[i + 1]p[j] + \cancel{Ap[j]^2} + \cancel{Bp[i + 1]} - \cancel{Bp[j]} + \cancel{C} \right )
+			+ \left( \cancel{Ap[i]^2} - 2Ap[i]p[j + 1] + \cancel{Ap[j + 1]^2} + \cancel{Bp[i]} - \cancel{Bp[j + 1]} + \cancel{C} \right )
+
+			\\ 
+
+			\tiny
+			- 2Ap[i]p[j] - 2Ap[i + 1]p[j + 1] &
+			\tiny
+			\geq - 2Ap[i + 1]p[j] - 2Ap[i]p[j + 1]
+
+			\\
+
+			\tiny
+			- 2Ap[i]p[j] - 2Ap[i + 1]p[j + 1] + 2Ap[i + 1]p[j] + 2Ap[i]p[j + 1] &
+			\tiny
+			\geq 0
+
+			\\
+
+			\tiny
+			2A(- p[i]p[j] - p[i + 1]p[j + 1] + p[i + 1]p[j] + p[i]p[j + 1]) &
+			\tiny
+			\geq 0
+
+			\\
+
+			\tiny
+			-2A(p[i + 1] - p[i])(p[j + 1] - [j]) &
+			\tiny
+			\geq 0
+		\end{align} \]
+
+		<p>
+			Recall that \( p[] \) or \( psa[] \) is a prefix sum array on positive elements, so for all \( i \), \( p[i + 1] > p[i] \), which
+			makes both \( p[i + 1] - p[i] \) and \( p[j + 1] - p[j] \) positive.
+		</p>
+
+		<p>
+			Additionally, it is given in the problem statement that \( A \lt 0 \), so \( -A \) is positive. Therefore, the left-hand side product
+			must be positive. This means that starting from the statement of the inequality, a true statement is reached, and the Quadrangle Inequality
+			is indeed satisfied. \( \square \)
+		</p>
+	</body>
+</html>

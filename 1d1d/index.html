@@ -1,157 +1,147 @@
+<!-- TODO : j = 0, not j = 1, fix the f(x), f[x], f_x notation -->
+<!-- maybe normalize the section names -->
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>1D1D DP: A Dynamic Programming Optimization</title>
 		<link rel="stylesheet" href="style.css">
-		<script src="script.js"></script>
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 	</head>
+
 	<body>
 		<div id="title">
 			1D1D DP: A Dynamic Programming Optimization
 		</div>
 
-		<div id="prereq">
-			<div class="heading">Pre-Requisite Knowledge</div>
-			<div class="content">
-				This artcile will assume you have some knowledge about the following:
-				<ul>
-					<li>Time Complexity</li>
-					<li>Basic Dynamic Programming</li>
-					<li>Binary Search</li>
-					<li>Stack (Data Structure)</li>
-				</ul>
-			</div>
-		</div>
-
 		<div id="toc">
 			<div class="heading">Table of Contents</div>
 			<ul>
+				<li><a href="#intro">Introduction</a></li>
+				<li><a href="#prereq">Pre-Requisites</a></li>
 				<li><a href="#motivation">Motivation Problem</a></li>
-				<li><a href="#relation">Introducing: 1D1D DP</a></li>
-				<li><a href="#mono">Monotonic Property</a></li>
+				<li><a href="#relation">General Form</a></li>
 				<li><a href="#quad">Quadrangle Inequality</a></li>
-				<li><a href="#equiv">Proof of Equivalence</a></li>
+				<li><a href="#mono">Monotonic Property</a></li>
 				<li><a href="#o_nsquared">O(N²) Technique</a></li>
 				<li><a href="#o_nlogn">O(N log N) Technique</a></li>
 				<li><a href="#o_n">O(N) Technique</a></li>
+				<li><a href="#cht">Relation to the Convex Hull Trick</li>
 				<li><a href="#recognize">Recognizing the Quadrangle Inequality</li>
-				<li><a href="#notes">Additional Notes</a></li>
+				<li><a href="#appendix">Appendix</a></li>
 			</ul>
 		</div>
 
 		<div id="body">
-			<div id="credit" class="section">
-				<div class="heading">Credit</div>
+			<div id="prereq">
+				<div class="heading">Introduction</div>
 				<div class="content">
-					This article is heavily based off of <a href="https://sites.google.com/site/ubcprogrammingteam/news/1d1ddynamicprogrammingoptimization-parti">this one</a>.
-					Please go check it out before or after you read this one.
+					<p>
+						1D1D DP, also known as the Slope Trick, is a dynamic programming optimization that
+						reduces a specific type of \( O(N^2) \) DP solutions to \( O(N) \) or \( O(N \log N) \). 
+						This is a well-known technique that is documented in English primarily in
+						<a href="https://sites.google.com/site/ubcprogrammingteam/news/1d1ddynamicprogrammingoptimization-parti">this article</a>
+						and <a href="https://codeforces.com/blog/entry/8219?#comment-139241">this comment</a> on a Codeforces blog post.
+						This is one of many techniques that can be used to lower the time complexity of a DP recurrence that
+						satisfies specific properties.
+					</p>
+
+					<p>
+						The purpose of this article is to combine all information into one source and also provide reasoning
+						behind the correctness of the technique.
+					</p>
+				</div>
+			</div>
+
+			<div id="prereq">
+				<div class="heading">Pre-Requisite Knowledge</div>
+				<div class="content">
+					This article will assume you know about the following:
+					<ul>
+						<li>Time Complexity</li>
+						<li>Prefix Sum Array</li>
+						<li>Basic Dynamic Programming</li>
+						<li>Binary Search</li>
+						<li>Deque</li>
+					</ul>
+
+					Additionally, to clear up some notation, \( arr[] \) denotes an array named \( arr \), which would be
+					\( func() \) denotes
 				</div>
 			</div>
 
 			<div id="motivation" class="section">
 				<div class="heading">A Motivation Problem</div>
 				<div class="content">
-					Perhaps the simplest problem that this technique can be applied to is <a href="https://dmoj.ca/problem/hci16police">Cheapest Operation Ever</a>.
-					<br> <br>
-					To summarize the problem statement, there are \(N\) criminals standing in a straight line, at positive integer coordinate points given from left to right. The \(i\)-th criminal is standing at point \(a_i\).
-					<br>
-					You can hire a cop for \(K\) dollars (originally \(H\) in the problem statement), who will be deployed to any point with no additional charge. 
-					<br>
-					You can also instruct any cop to travel any amount of distance, but the amount of fuel is equal to the square of the distance travelled.
-					<br>
-					If a cop is at any time in the same point as a criminal, they immediate catch the criminal with no additional cost.
-					<br>
-					Given all the positions and \(K\), what is the minimum cost to catch all criminals?
-					<br>
-					Contraints: \(N \leq 10^5\), \(H, a_i \leq 10^6\)
-					<br><br>
-					A dynamic programming solution emerges. We will use 1-indexing, so the criminals are numbered from \(1\) to \(N\).
-					<br>
-					Let \(d_i\) be the minimum cost of catching the first \(i\) criminals.
-					<br>
-					We notice in order to catch the first \(i\) criminals, we can pick some \(j\) such that \(j < i\)
-					and assign a cop to all criminals between \(j + 1\) and \(i\), inclusive.
-					<br>
-					The cost of catching the first \(i\)
-					criminals is then the cost of hiring the cost of the new cop, \(K\), plus fuel, \( (a_i - a_{j + 1} )^2 \)
-					, plus the minimum cost of catching the first \(j\) criminals.
-					<br>
-					In other words, for some \(j < i\)
-					\[
-						d_i = d_j + (a_i - a_{j + 1})^2 + K
-					\]
-					Also, we notice that to minimize the overall value, we can check all \( j \) such that \(j < i\) and take the \( j \) that minimizes the total value.
-					<br>
-					We can write this as
-					\[
-						d_i = \min_{j = 1}^{i - 1} \left[ d_j + (a_i - a_{j + 1})^2 + K \right]
-					\]
-					Since at each iteration we rely on \(i - 1\) previous states, the number of operations is
-					\( 0 + 1 + 2 + 3 + \dots + N - 1 \), which is \( O(N^2) \).
-					<br>
-					This time complexity is not enough to pass \( N \leq 10^5 \), so some optimization is needed.
+					<p>
+						Possibly the most classic problem where this technique can be applied is
+						<a href="https://dmoj.ca/problem/apio10p1">Commando</a> from the APIO.
+					</p>
+
+					<p>
+						To summarize the problem statement: Given an array of \( N \) positive numbers, \( (N \leq 10^6) \), partition it into any number of contiguous subarrays.
+						The cost for each subarray is as follows: if \( x \) is the sum of the elements in the subarray,
+						the cost is \( Ax^2 + Bx + C \) where \( A \lt 0 \) and \( A \), \(B  \),
+						and \( C \) are given constants.
+						The total cost is the sum of costs of the subarrays that the array is partitioned into.
+						Find the maximum possible total cost.
+					</p>
+
+					<p>
+						For the rest of the article, 1-index notation will be used, i.e. the indexes start from \( 1 \) and
+						end in \( N \). The array in the problem will be referred to as \( arr[] \).
+					</p>
+
+					<p>
+						A naive DP solution emerges. Let \( dp[i] \) be the maximum possible cost if the array only contained the
+						first \( i \) elements. Then, the answer to \( dp[i] \) is to pick some \( j \lt i \) and take the
+						subarray beginning at \( j + 1 \) and ending at \( i \) as a partition and use the previously
+						calculated \( dp[j] \) which tells us how to partition the rest of the array.
+						It is uncertain which \( j \) will give the maximum value for \( dp[i] \)
+						so all of them need to be tried out.
+
+						In math notation, this is expressed as
+						\[
+							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + A \cdot s(j + 1, j)^2 + B \cdot s(j + 1, i) + C \right]
+						\]
+						where \( s(j + 1, i) \) is the of the elements of \( arr \) from \( j + i \) to \( i \), inclusive.
+					</p>
+
+					<p>
+						To speed things up, a <a href="https://archive.mcpt.ca/cpt-lessons/data-structures/prefix-sum-array/">prefix sum array</a> can be used.
+						Let \( psa[i] \) be the sum of all elements from \( 1 \) to \( i \) inclusive.
+						Note that the sum from \( j + 1 \) to \( i \) is given by \( psa[i] - psa[j] \).
+						The recurrence is rewritten as:
+						\[
+							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + A(psa[i] - psa[j])^2 + B(psa[i] - psa[j]) + C \right]
+						\]
+						The time complexity is \( O(N^2) \) because there are \( O(N) \) states, which each rely on \( O(N) \)
+						previous states.
+					</p>
 				</div>
 			</div>
 
 			<div id="relation" class="section">
-				<div class="heading">Introducing: 1D1D DP</div>
+				<div class="heading">General Form</div>
 				<div class="content">
-					The name 1D1D refers to a dynamic programming recurrence relation with one dimension (1D) of states
-					which each rely on one dimension (1D) states.
-					<br>
-					The recurrence relation above can be generalized to all relations that satisfy this form:
-					<div class="block">
-						<div class="block-header">General Form</div>
-						\[
-							d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-						\]
-					</div>
-					where \( f(i, j) \) is some "cost" or "weight" function associated with both \(i\) and \(j\).
-					In the motivation problem, \( f(i, j) = (a_i - a_{j + 1})^2 + K \).
-					<br>
-					If \( f(i, j) \) satisfies a special property called the <b>Monotonic Property</b>, then
-					we can use a technique to bring the time complexity down from \( O(N^2) \) to \( O(N \log N) \) or in
-					some cases \( O(N) \). This technique is called 1D1D DP.
-				</div>
-			</div>
+					<p>
+						The name 1D1D refers to a dynamic programming recurrence relation with one dimension (1D) of states
+						which each rely on one dimension (1D) states.
+					</p>
 
-			<div id="mono" class="section">
-				<div class="heading">Monotonic Property</div>
-				<div class="content">
-					In the motivation problem and several other similar problems, there is a useful property
-					within the recurrence relation.
-					<br>
-					Recall that the general recurrence relation for 1D1D DP is 
-					\[
-						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					Let's define \( g_i \) to be the value of \( j \) that you use to in order to compute
-					the value of \( d_i \), i.e. the value of \( j (j < i) \) for which \( d_j + f(i, j) \)
-					is minimized. We can write this in math notation as
-					\[
-						g_i = \text{arg}\min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					The <b>Monotonic Property</b> is satisfied if as \( i \) increases, \( g_i \) does not decrease.
-					<br>
-					This can be expressed in math notation in two equivalent statements:
-
-					<div class="block">
-						<div class="block-header">Monotonic Property</div>
-						\[
-							\forall i, g(i) \leq g(i + 1)
-						\]
-						<center>and<center>
-						\[
-						   \forall i' > i, g(i') \geq g(i)
-						\]
-					</div>
+					<p>
+						The recurrence relation above can be generalized to all relations that satisfy this form:
+						<div class="block">
+							<div class="block-header">General Form</div>
+							\[
+								dp[i] = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+							\]
+						</div>
+						where \( f(i, j) \) is some "cost" or "weight" function associated with both \( i \) and \( j \).
+						In the motivation problem, \( f(i, j) = A(psa[i] - psa[j])^2 + (psa[i] - psa[j]) + C \).
+					</p>
 				</div>
-				
-				This property is what allows us to reduce the time complexity to \( O(N \log N) \) or \( O(N) \).
-				<br>
-				In later sections, we'll how to take advantage of this property and how to recognize it.
 			</div>
 
 			<div id="quad" class="section">
@@ -159,72 +149,139 @@
 				<div class="content">
 					Recall that the general recurrence relation for 1D1D DP is 
 					\[
-						d_i = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						dp[i] = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 					\]
-					The <b>Monotonic Property</b> can be recognized just by analyzing \( f(i, j) \).
-					<br>
-					More specifically, the <b>Monotonic Property</b> is satisfied if and only if the
-					<b>Quadrangle Inequality</b> on \( f(i, j) \) is satisfied.
+					The Quadrangle Inequality is a property of \( f(i, j) \), which if satisfied, implies two other
+					properties: the Monotonic Property and the Turning Point Property.
 					<div class="block">
 						<div class="block-header">Quadrangle Inequality</div>
 						\[
+							\forall j \lt i,
 							f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
 						\]
 					</div>
+
+					<p>
+						The restriction that \( j \lt i \) is because so the only time \( f(i, j) \) is used is when \( j \lt i \).
+					</p>
+
+					<p>
+						This form of the inequality is the most common in literature but not very useful. If rearranged into
+						\( f(i + 1, j + 1) - f(i + 1, j) \leq f(i, j + 1) - f(i, j) \),
+						then it gives the intuition that as \( i \) increases, the rate of change of \( f(i, j) \) in respect to \( j \) increases.
+					</p>
+
+					<p>
+						If rearranged like into \( f(i + 1, j + 1) - f(i, j + 1) \leq f(i + 1, j) - f(i, j) \),
+						then it gives the intuition that as \( j \) increases, the rate of change of \( f(i, j) \) in respect to \( i \) increases.
+					</p>
+
+					<p>
+						Because as one thing increases, the rate of change of something increases, the Quadrangle Inequality
+						is sometimes referred to as \( f(i, j) \) being convex or concave.
+					</p>
+
+					<p>
+						This is also written in the form
+						\[
+							\forall j \lt j' \lt i \lt i', f(i, j) + f(i', j') \leq f(i', j) + f(i, j')
+						\]
+						The statement given above is a specific case of this more general case where \( i' = i + 1 \) and \( j' = j + 1 \).
+					</p>
 				</div>
-				To illustrate how we can prove the Quadrangle Inequality for a recurrence, let's look at the motivation problem, which had the recurrence
-				\[
-					d_i = \min_{j = 1}^{i - 1} \left[ d_j + (a_i - a_{j + 1})^2 + K \right]
-				\]
-				and so in this case, \( f(i, j) = (a_i - a_{j + 1})^2 + K \).
-				<br><br>
-				We now wish to prove that \( f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1) \)
-				\[ \begin{align}
-					\require{cancel}
-					f(i, j) + f(i + 1, j + 1) & \leq f(i + 1, j) + f(i, j + 1)
-					\\
-					\left[(a_i - a_{j + 1})^2 + K\right] + \left[(a_{i + 1} - a_{j + 2})^2 + K\right] & \leq \left[(a_{i + 1} - a_{j + 1})^2 + K\right] + \left[(a_i - a_{j + 2})^2 + K\right]
-					\\
-					\left[(a_i - a_{j + 1})^2 \cancel{+ K} \right] + \left[(a_{i + 1} - a_{j + 2})^2 \cancel{+ K} \right] & \leq \left[(a_{i + 1} - a_{j + 1})^2 \cancel{+ K} \right] + \left[(a_i - a_{j + 2})^2 \cancel{+ K} \right]
-					\\
-					\left[(a_i - a_{j + 1})^2\right] + \left[(a_{i + 1} - a_{j + 2})^2\right] & \leq \left[(a_{i + 1} - a_{j + 1})^2\right] + \left[(a_i - a_{j + 2})^2\right]
-					\\
-					\left[a_i^2 - 2 a_i a_{j + 1} + a_{j + 1}^2\right] + \left[a_{i + 1}^2 - 2 a_{i + 1} a_{j + 2} + a_{j + 2}^2\right] & \leq \left[a_{i + 1}^2 - 2 a_{i + 1} a_{j + 1} + a_{j + 1}^2\right] + \left[a_i^2 - 2 a_i a_{j + 2} + a_{j + 2}^2\right]
-					\\
-					\left[\cancel{a_i^2} - 2 a_i a_{j + 1} + \cancel{a_{j + 1}^2} \right] + \left[\cancel{a_{i + 1}^2} - 2 a_{i + 1} a_{j + 2} + \cancel{a_{j + 2}^2} \right] & \leq \left[\cancel{a_{i + 1}^2} - 2 a_{i + 1} a_{j + 1} + \cancel{a_{j + 1}^2} \right] + \left[\cancel{a_i^2} - 2 a_i a_{j + 2} + \cancel{a_{j + 2}^2} \right]
-					\\
-					- 2 a_i a_{j + 1} - 2 a_{i + 1} a_{j + 2} & \leq  - 2 a_{i + 1} a_{j + 1} - 2 a_i a_{j + 2}
-					\\
-					- 2 \left(a_i a_{j + 1} + a_{i + 1} a_{j + 2}\right) & \leq  - 2 \left(a_{i + 1} a_{j + 1} + a_i a_{j + 2}\right)
-					\\
-					a_i a_{j + 1} + a_{i + 1} a_{j + 2} & \geq a_{i + 1} a_{j + 1} + a_i a_{j + 2}
-					\\
-					a_i a_{j + 1} + a_{i + 1} a_{j + 2} - a_{i + 1} a_{j + 1} - a_i a_{j + 2} & \geq 0
-					\\
-					\left(a_i - a_{i + 1}\right)\left(a_{j + 1} - a_{j + 2}\right) & \geq 0
-				\end{align} \]
-				<br>
-				Note that the criminals are given left to right, so for any \( i \), \( a_i < a_{i + 1} \)
-				<br>
-				Since \( a_i < a_{i + 1} \), \( a_i - a_{i + 1} < 0\)
-				<br>
-				Since \( a_{j + 1} < a_{i + 2} \), \( a_{j + 1}- a_{j + 2} < 0\)
-				<br>
-				The product of two negative numbers is always positive, so the statement we arrived at
-				\[
-					\left(a_i - a_{i + 1}\right)\left(a_{j + 1} - a_{j + 2}\right) \geq 0
-				\]
-				is indeed true. Therefore, the Quadrangle Inequality is satisfied for \( f(i, j) = (a_i - a_{j + 1})^2 + K \). \( \square \)
 			</div>
 
-			<div id="equiv" class="section">
-				<div class="heading">Proof of Equivalence</div>
-				<div class="content"></div>
+			<div id="mono" class="section">
+				<div class="heading">Monotonic Property</div>
+				<div class="content">
+					<p>
+						The first thing that the Quadrangle Inequality implies is the Montonic Property.
+					</p>
+
+					<p>
+						Recall that the general recurrence relation for 1D1D DP is 
+						\[
+							dp[i] = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+						Let's define \( opt(i) \) to be the value of \( j \) that you use to in order to compute
+						the value of \( dp[i] \), i.e. the value of \( j (j \lt i) \) for which \( dp[j] + f(i, j) \)
+						is minimized. (The \( opt \) comes from "optimal"). We can write this in math notation as
+						<div class="block">
+							<div class="block-header">
+								Definition of \( opt(i) \)
+							</div>
+							\[
+								opt(i) = \text{arg}\min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+							\]
+						</div>
+						The <b>Monotonic Property</b> is satisfied if as \( i \) increases, \( opt(i) \) does not decrease.
+					</p>
+
+					<p>
+						This can be expressed in math notation in two equivalent statements:
+
+						<div class="block">
+							<div class="block-header">Monotonic Property</div>
+							\[
+								\forall i, opt(i) \leq opt(i + 1)
+							\]
+							<center>or<center>
+							\[
+							   \forall i \lt i', opt(i) \leq opt(i')
+							\]
+						</div>
+					</p>
+				</div>
+			</div>
+
+			<div id="turning" class="section">
+				<div class="heading">Turning Point Property</div>
+				<div class="content">
+					<p>
+						The second property that the Quadrangle Inequality implies is the Turning Point Property.
+					</p>
+
+					<p>
+						The Turning Point Property is satisfied if for all \( j \lt k \), there exists a singular \( i \)
+						such that for all indexes \( \leq i \), it is better to use \( j \) than \( k \), i.e.
+						\( dp[j] + f(j, i) \gt dp[k] + f(k, i) \) but for all indexes \( \gt i \), it is better to use
+						\( k \) than \( j \), i.e. \( dp[k] + f(k, i) \gt dp[j] + f(j, i) \).
+					</p>
+
+					<p>
+						This can be written in math notation as:
+						<div class="block">
+							<div class="block-header">Turning Point Property</div>
+							\[
+								\forall j \lt k, \exists i:
+								\\
+								\forall a \leq i, dp[j] + f(j, i) \gt dp[k] + f(k, i)
+								\\
+								\forall b \gt i, dp[k] + f(k, i) \gt dp[j] + f(j, i)
+							\]
+						</div>
+					</p>
+
+					<p>
+						
+					</p>
+				</div>
 			</div>
 
 			<div id="o_nsquared" class="section">
 				<div class="heading">The O(N²) Technique</div>
-				<div class="content"></div>
+				<div class="content">
+					Since we know that \( opt(i) \) doesn't decrease, we can keep track of \( opt(i - 1) \) in a variable and instead of calculating
+					\[
+						dp[i] = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					we can make a small change and calculate
+					\[
+						dp[i] = \min_{j = opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
+					\]
+					This solution is still \( O(N^2) \) and in the worst case, \( g(i) = 0 \) for all \( i \), but in practice, this will often
+					be fast enough to pass.
+				</div>
 			</div>
 
 			<div id="o_nlogn" class="section">
@@ -235,35 +292,145 @@
 			<div id="o_n" class="section">
 				<div class="heading">The O(N) Technique</div>
 				<div class="content">
-					
+				</div>
+			</div>
+
+			<div id="cht" class="section">
+				<div class="heading">Relation to the Convex Hull Trick</div>
+				<div class="content">
+					The Convex Hull Trick can be seen as a special case of 1D1D DP.
 				</div>
 			</div>
 
 			<div id="recognize" class="section">
 				<div class="heading">Recognizing the Quadrangle Inequality</div>
-				<div class="content"></div>
+				<div class="content">
+					<p>
+						To illustrate how we can prove the Quadrangle Inequality for a recurrence, let's look at a very simple recurrence relation:
+						\[
+							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + K - (arr[i] - arr[j]) \right]
+						\]
+						Where \( arr[] \) is a given non-decreasing array and \( K \) is a given constant.
+					</p>
+
+					<p>
+						In this case, \( f(i, j) = K - (arr[i] - arr[j])^2 \). Now, the Quadrangle Inequality for \( f(i, j) \) can be proven algebraically.
+					</p>
+
+					<p>
+						\[ \begin{align}
+							\require{cancel}
+
+							\small
+							f(i, j) + f(i + 1, j + 1)
+							\small
+							&
+							\small \ 
+							\leq \ 
+							f(i + 1, j) + f(i, j + 1) \\
+
+							\small
+							\left( K - (arr[i] - arr[j])^2 \right)
+							+ \left( K - (arr[i + 1] - arr[j + 1])^2 \right)
+							&
+							\small \ 
+							\leq \ 
+							\left( K - (arr[i + 1] - arr[j])^2 \right)
+							+ \left( K - (arr[i] - arr[j + 1])^2 \right)
+
+							\small
+							\left( K - (arr[i] - arr[j])^2 \right)
+							+ \left( K - (arr[i + 1] - arr[j + 1])^2 \right)
+							&
+							\small \ 
+							\leq \ 
+							\left( K - (arr[i + 1] - arr[j])^2 \right)
+							+ \left( K - (arr[i] - arr[j + 1])^2 \right)
+						\end{align} \]
+					</p>
+				</div>
 			</div>
 
-			<div id="notes" class="section">
-				<div class="heading">Additional Notes</div>
+			<div id="appendix" class="section">
+				<div class="heading">Appendix</div>
 				<div class="content">
-					This technique also works if you replace \( \min \) with \( \max \).
-					<br>
-					It applies to recurrences of the form
-					\[
-						d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					if and only if \( f(i, j) \) satisfies for all \( j \leq i \),
-					\[
-						f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
-					\]
+					<p>
+						This technique also works if you replace \( \min \) with \( \max \).
+						<br>
+						It applies to recurrences of the form
+						\[
+							d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+						if and only if \( f(i, j) \) satisfies for all \( j \leq i \),
+						\[
+							f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
+						\]
+					</p>
+
+					<!-- TODO Restructure these blocks -->
+
+					<hr/>
+
+					<p>
+						Proof that if
+						\[
+							\forall j < i,
+							f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
+						\]
+						<center>then</center>
+						\[
+							\forall j < j' < i < i', f(i, j) + f(i', j') \leq f(i', j) + f(i, j')
+						\]
+					</p>
+
+					<p>
+						<b>Lemma:</b> For all x, y and a > 0, \( f(x + 1, y + b) - f(x + 1, y) \leq f(x, y + b) - f(x, y) \)
+						Using the rearrangement \( f(i + 1, j + 1) - f(i + 1, j) \leq f(i, j + 1) - f(i, j) \), this can be proven by induction.
+					</p>
+
+					<p>
+						The base case, \( a = 1 \), directly follows by applying the Quadrangle Inequality for \( i = x, j = y \).
+					</p>
+
+					<p>
+						In the induction step, for \( b > 1 \), if
+						\[
+							f(x + 1, y + b) - f(x + 1, y) \leq f(x, y + b) - f(x, y)
+						\]
+						<center>then</center>
+						\[
+							f(x + 1, y + b + 1) - f(x + 1, y) \leq f(x, y + b + 1) - f(x, y)
+						\]
+						This directly follows by applying the Quadrangle Inequality for \( i = x, j = y + b \).
+					</p>
+
+					<p>
+						Now \( f(x + a, y + b) - f(x + a, y) \leq f(x, y + b) - f(x, y) \) can be proven.
+					</p>
+
+					<p>
+						In the base case, \( a = 1 \), which directly follows from the lemma.
+					</p>
+
+					<p>
+						In the induction step, for all \( a > 1\), if
+						In the induction step, for \( b > 1 \), if
+						\[
+							f(x + a, y + b) - f(x + a, y) \leq f(x, y + b) - f(x, y)
+						\]
+						<center>then</center>
+						\[
+							f(x + a + 1, y + b) - f(x + a + 1, y) \leq f(x, y + b) - f(x, y)
+						\]
+						This directly follows by applying the lemma, for \( x = x + a, y = y \). \( \square \)
+					</p>
 				</div>
 			</div>
 
 			<!--
 
 			<div id="template" class="section">
-				<div class="heading">Recognizing the Quadrangle Inequality</div>
+				<div class="heading">Template Heading</div>
 				<div class="content"></div>
 			</div>
 
