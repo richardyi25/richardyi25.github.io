@@ -9,8 +9,10 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>1D1D DP: A Dynamic Programming Optimization</title>
+		<link rel="stylesheet" href="prism.css">
 		<link rel="stylesheet" href="style.css">
-		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+		<script src="prism.js"></script>
 	</head>
 
 	<body>
@@ -140,6 +142,40 @@
 						The time complexity is \( O(N^2) \) because there are \( O(N) \) states, which each rely on \( O(N) \)
 						previous states.
 					</p>
+					
+					<p>
+						Below is sample C++ code implementing this idea and solving the problem in \( O(N^2) \).
+					</p>
+
+					<pre class="line-numbers" data-line="16-22"><code class="language-cpp">#include &lt;stdio.h&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+typedef long long int lli;
+const int MN = 1e6+1;
+const lli INF = 1e18;
+lli N, A, B, C, arr[MN], psa[MN], dp[MN];
+
+int main(){
+	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
+	for(int i = 1; i <= N; i++){
+		scanf("%lld", &arr[i]);
+		psa[i] = psa[i - 1] + arr[i];
+	}
+
+	for(int i = 1; i <= N; i++){
+		lli best = -INF;
+		for(int j = 0; j < i; j++){
+			best = max(best, dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C);
+		}
+		dp[i] = best;
+	}
+
+	printf("%lld\n", dp[N]);
+}</code></pre>
+					<p>
+						A time complexity of \( O(N^2) \) won't be able to pass a problem with \( N \leq 10^6 \). 1D1D DP
+						optimizes the time complexity to \( O(N log N) \) or \( O(N) \) which let the solution pass.
+					</p>
 				</div>
 			</div>
 
@@ -152,7 +188,8 @@
 					</p>
 
 					<p>
-						The recurrence relation above can be generalized to all relations that satisfy this form:
+						The recurrence relation from the motivation problem can be generalized to all relations that
+						satisfy the form
 						<div class="block">
 							<div class="block-heading">General Form</div>
 							\[
@@ -160,7 +197,7 @@
 							\]
 						</div>
 						where \( f(i, j) \) is some "cost" or "weight" function associated with both \( i \) and \( j \).
-						In the motivation problem, \( f(i, j) = A(psa[i] - psa[j])^2 + (psa[i] - psa[j]) + C \).
+						For example, in the motivation problem, \( f(i, j) = A(psa[i] - psa[j])^2 + (psa[i] - psa[j]) + C \).
 					</p>
 				</div>
 			</div>
@@ -312,8 +349,7 @@
 			<div id="o_nlogn" class="section">
 				<div class="heading">The O(N log N) Technique</div>
 				<div class="content">
-					The Turning Point Property can be taken advantage of. A deque containing possible values for \( opt(i) \)
-					is maintained 
+					A sketch of the algorithm follows:
 				</div>
 			</div>
 
