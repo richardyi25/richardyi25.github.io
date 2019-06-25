@@ -87,7 +87,9 @@
 					</p>
 
 					<p>
-						Also, the \( \forall \) symbol means "for all" and the \( \exists \) symbol means "there exists".
+						Additionally, the \( \forall \) symbol means "for all", the \( \exists \) symbol means "there exists", and
+						the \( \nexists \) symbol means "there does not exist".
+
 						For example, the statement \( \forall x, \exists y \gt x: f(x, y) = 1 \) should read as "For all \( x \),
 						there exists some \( y \gt x \) such that \( f(x, y) = 1 \).
 					</p>
@@ -115,7 +117,12 @@
 						For the rest of the article, 1-index notation will be used, i.e. the indexes start from \( 1 \) and
 						end in \( N \). The array in the problem will be referred to as \( arr[] \).
 					</p>
+				</div>
+			</div>
 
+			<div id="naive">
+				<div class="heading">Naive Solution</div>
+				<div class="content">
 					<p>
 						A naive DP solution emerges. Let \( dp[i] \) be the maximum possible cost if the array only contained the
 						first \( i \) elements. Then, the answer to \( dp[i] \) is to pick some \( j \lt i \) and take the
@@ -144,10 +151,10 @@
 					</p>
 					
 					<p>
-						Below is sample C++ code implementing this idea and solving the problem in \( O(N^2) \).
+						Below is a C++ implementation.  The important DP part is highlighted.
 					</p>
 
-					<pre class="line-numbers" data-line="16-22"><code class="language-cpp">#include &lt;stdio.h&gt;
+					<pre class="line-numbers" data-line="16-23"><code class="language-cpp">#include &lt;stdio.h&gt;
 #include &lt;algorithm&gt;
 using namespace std;
 typedef long long int lli;
@@ -165,7 +172,8 @@ int main(){
 	for(int i = 1; i <= N; i++){
 		lli best = -INF;
 		for(int j = 0; j < i; j++){
-			best = max(best, dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C);
+			lli val = dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
+			best = max(best, val);
 		}
 		dp[i] = best;
 	}
@@ -174,7 +182,7 @@ int main(){
 }</code></pre>
 					<p>
 						A time complexity of \( O(N^2) \) won't be able to pass a problem with \( N \leq 10^6 \). 1D1D DP
-						optimizes the time complexity to \( O(N log N) \) or \( O(N) \) which let the solution pass.
+						optimizes the time complexity to \( O(N \log N) \) or \( O(N) \) which let the solution pass.
 					</p>
 				</div>
 			</div>
@@ -304,10 +312,22 @@ int main(){
 					</p>
 
 					<p>
-						The Turning Point Property is satisfied if for all \( j \lt k \), there exists a singular \( i \)
-						such that for all indexes \( \leq i \), it is better to use \( j \) than \( k \), i.e.
-						\( dp[j] + f(j, i) \gt dp[k] + f(k, i) \) but for all indexes \( \gt i \), it is better to use
-						\( k \) than \( j \), i.e. \( dp[k] + f(k, i) \gt dp[j] + f(j, i) \).
+						The Turning Point Property is satisfied if for all \( j \lt j' \), there exists a singular \( i \)
+						such that for all indexes \( \leq i \), it is better to use \( j \) than \( j' \), i.e.
+						\( dp[j] + f(i, j) \gt dp[j'] + f(i, j') \) but for all indexes \( \gt i \), it is better to use
+						\( j' \) than \( j \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \).
+					</p>
+
+					<p>
+						Note that the \( i \) can approach positive or negative infinity without bounds, meaning that if
+						\( j \) is always better or worse than \( j' \), the property is still satisfied.
+					</p>
+
+					<p>
+						Therefore, a more proper formulation states that the Turning Point Property is satisfied if
+						for all \( j \lt k \), there <b>doesn't</b> exist some \( i \lt i' \) where \( j' \) is better at
+						\( i \) but \( j \) is better at \( j' \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \) but
+						\( dp[j] + f(i', j) \gt dp[j'] + f(i', j) \).
 					</p>
 
 					<p>
@@ -315,17 +335,15 @@ int main(){
 						<div class="block">
 							<div class="block-heading">Turning Point Property</div>
 							\[
-								\forall j \lt k, \exists i:
+								\forall j \lt j', \nexists i \lt i':
 								\\
-								\forall a \leq i, dp[j] + f(j, i) \gt dp[k] + f(k, i)
-								\\
-								\forall b \gt i, dp[k] + f(k, i) \gt dp[j] + f(j, i)
+								\begin{align}
+									dp[j'] + f(i, j') & \gt dp[j] + f(i, j)
+									\\
+									dp[j] + f(i', j) & \gt dp[j'] + f(i', j)
+								\end{align}
 							\]
 						</div>
-					</p>
-
-					<p>
-						
 					</p>
 				</div>
 			</div>
@@ -333,16 +351,53 @@ int main(){
 			<div id="o_nsquared" class="section">
 				<div class="heading">The O(N²) Technique</div>
 				<div class="content">
-					Since we know that \( opt(i) \) doesn't decrease, we can keep track of \( opt(i - 1) \) in a variable and instead of calculating
-					\[
-						dp[i] = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					we can make a small change and calculate
-					\[
-						dp[i] = \min_{j = opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					This solution is still \( O(N^2) \) and in the worst case, \( g(i) = 0 \) for all \( i \), but in practice, this will often
-					be fast enough to pass.
+					<p>
+						Since we know that \( opt(i) \) doesn't decrease, we can keep track of \( opt(i - 1) \) in a variable and instead of calculating
+						\[
+							dp[i] = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+						we can make a small change and calculate
+						\[
+							dp[i] = \min_{j = opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+						This solution is still \( O(N^2) \) and in the worst case, \( g(i) = 0 \) for all \( i \), but in practice, this will often
+						be fast enough to pass.
+					</p>
+
+					<p>
+						Below is a C++ implementation.  The important DP part is highlighted.
+						<pre class="line-numbers" data-line="16-27"><code class="language-cpp">#include &lt;stdio.h&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+typedef long long int lli;
+const int MN = 1e6+1;
+const lli INF = 1e18;
+lli N, A, B, C, arr[MN], psa[MN], dp[MN];
+
+int main(){
+	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
+	for(int i = 1; i <= N; i++){
+		scanf("%lld", &arr[i]);
+		psa[i] = psa[i - 1] + arr[i];
+	}
+
+	int opt = 0;
+	for(int i = 1; i <= N; i++){
+		lli best = -INF;
+		for(int j = opt; j < i; j++){
+			lli val = dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
+			if(val > best){
+				best = val;
+				opt = j;
+			}
+		}
+		dp[i] = best;
+	}
+
+	printf("%lld\n", dp[N]);
+}</code></pre>
+						This code is enough to get full points on the official test data for APIO Commando.
+					</p>
 				</div>
 			</div>
 
