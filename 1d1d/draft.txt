@@ -1,0 +1,172 @@
+{{
+	global notes:
+	let j start at 0 for all dp in this article but mention that it could start at 1 depending on implementation 
+}}
+
+Introduction
+============
+
+1D1D DP, also known as the Slope Trick, is a dynamic programming optimization that reduces the time complexity of a specific recurrence from \( O(N^2) \) to \( O(N log N) \) or \( O(N) \).
+
+Pre-Requisite Knowledge
+=======================
+
+This article will assume you know about the following:
+ - Time Complexity
+ - Prefix Sum Array
+ - Basic Dynamic Programming
+ - Binary Search
+ - Deque Data Structure
+
+You should also be familiar with some math operators. \( \sum_{i = 1}^{10} f(i) \) should be read as "The sum of \( f(i) \) over all values of \( i \) from \( 1 \) to \( 10 \). Similarly, \( \max_{i = 1}^{10} f(i) \) should be read as "The maximum of \( f(i) \) over all values of \( i \) from \( 1 \) to \( 10 \)". Also, \( \argmax_{i = 1}^{10} f(i) \) should be read as "The value of \( i \) that yields the maximum value of \( f(i) \), where \( i \) is between \( 1 \) and \( 10\)".
+
+The symbol \( \exists \) means "there exists", the symbol \( \nexists \) means "there does not exist", and the symbol \( \forall \) means "for all". For example, \( \forall i \lt j, \exists k: f(i, k) \gt f(j, k) \) should be read as "For all pairs \( i \) and \( j \) such that \(i \lt j \), there exists some \( k \) such that \( f(i, k) \gt f(j, k) \)".
+
+Motivation Problem
+==================
+Problem Link: <a href="https://dmoj.ca/problem/apio10p1">APIO '10 P1 - Commando</a>
+
+{{ This section is fine, except replace "cost" with "value" }}
+
+{{ Also, arr[] becomes a[] }}
+
+Naive Solution
+==============
+
+Let \( p[i] \) be the sum of all values of \( a[i] \) from \( 1 \) to \( i \). Note that \( sum_{k = l}^{r} a[k] = p[r] - p[l - 1] \) and that all values of \( p[i] \) for \( 1 \leq i \leq N \) can be calculated in \( O(N) \) since \( p[i] = p[i - 1] + a[i] \).
+
+Now, let \( dp[i] \) be the answer to the problem for the first \( i \) elements of \( a[] \), that is the maximum value that can be obtained by optimally partitioning the first \( i \) elements into subarrays. To get the answer, we pick some \( j \lt i \) and use the subarray from \( j + 1 \) to \( i \), and use \( dp[j] \) to determine the optimal value for the rest of the array from \( 1 \) to \( j \).
+
+The answer for \( dp[i] \) is then the maximum value over all choices of \( j \lt  i \), which can be written as:
+
+\[ \begin{align}
+	dp[i] &= max_{j = 0}{i - 1} \left[ dp[j] + value(p[i] - p[j]) \right]
+\end{align} \]
+
+Where \( value(x) \) = \( Ax^2 + Bx + C\). This can be expanded to
+
+\[ \begin{align}
+	dp[i] &= max_{j = 0}{i - 1} \left[ dp[j] + A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \right]
+\end{align} \]
+
+Note that \( dp[0] = 0 \) and \( p[0] = 0 \) in this implementation, and choosing \( j = 0 \) represents taking the entire current array as the only subarray.
+
+Since we need to iterate through all indexes less than \( i \) to calculate \( dp[i] \), the time complexity is \( O(N^2) \).
+
+{{Change arr[] to a[] and psa[] to p[] in the code}}
+
+General Form
+============
+
+In the motivation problem, there are \( O(N) \) states, each relying on \( O(N) \) previous states. This is where the name "1D1D" comes from: 1 dimension of states, each relying on one dimension of previous states. All 1D1D DP recurrences follow the form of
+
+\[
+	dp[i] = max_{j = 1}^{i - 1} \left[ dp[j] + f(i, j) \right]
+]
+
+Note that depending on the problem and implementation, \( max \) may be replaced with \( min \) and \( j = 1 \) might be \( j = 0 \).
+
+The function \( f(i, j) \) represents a cost or weight function in minimization problems and a value or utility function in maximization problems. In the motivation problem, \( f(i, j) = A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \).
+
+Quadrangle Inequality
+=====================
+
+The 1D1D optimization works only if \( f(i, j) \) satisfies a specific property called the Quadrangle Inequality. In some literature, this is called \( f(i, j) \) being "convex".
+
+{{ keep the block but put both forms in}}
+
+Since the only time \( f(i, j) \) is used is when \( j \lt i \), we add the restriction that \( j \lt i \) and \( j' \lt i \).
+
+{{ voice ? }}
+This property looks confusing and difficult to prove given \( f(i, j) \), so we'll come back to it later. This property is important because it implies two other useful properties: the Monotonic Property and the Turning Point Property.
+
+Monotonic Property
+==================
+
+Recall that the general recurrence relation is
+\[
+	dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + f(i, j) \right]
+\]
+
+We define \( opt(i) \) to be the value of \( j \) that maximizes \( dp[j] + f(i, j) \), that is, the value of \( j \) that is used to get the final value of \( dp[i] \).
+
+In math notation:
+
+{{block is good}}
+
+The Monotonic Property states that as \( i \) increases, \( opt(i) \) does not decrease. This can be expressed in math notation in two equivalent ways:
+
+{{block is good}}
+
+Turning Point Property
+======================
+
+Conceptually, if we're trying to calculate \( dp[i] \), then all \( j \lt i \) are considered possible "candidates" for \( opt(i) \). For some \( j \) and \( j' \), \( j \) is considered to be a "better" candidate if it yields a larger value for \( dp[i] \), that is, \( dp[j] + f(i, j) \gt dp[j'] + f(i, j') \).
+
+The Turning Point Property states that for all \( j \lt j' \), there must exist some "turning point" index \( i \), where \( j' \) becomes a better candidate than \( j \). For all indexes less than \( i \), \( j \) is a better candidate, but for all indexes greater than or equal to \( i \), \( j' \) is a better candidate.
+
+This turning point might be less than \( j \), in which case \( j' \) is always a better candidate, or more than \( N \) (past the end of the array), in which case \( j \) is always better.
+
+In other words, the Turning Point Property states that it is never the case that for some \( j \lt j' \), \( j' \) is a better candidate at some index \( i \), but at a later index \( i' \), \( j \) is a better candidate.
+
+This can be written in math notation as:
+
+{{ block is good but also j < j' < i < i' }}
+
+The O(N²) Technique
+===================
+
+{{ entire section is fine }}
+
+
+The O(N log N) Technique
+========================
+
+Note that the turning point of two candidates \( j \lt j' \) can be determined with a binary search for the first index where \( dp[j'] + f(i, j') \geq dp[j] + f(i, j) \).
+
+The Turning Point Property includes the idea of "candidates" for \( opt(i) \). In this technique, we keep track of all "useful" candidates.
+
+{{ use j, j' and j'' ??? }}
+
+First, we explore a consequence of the Turning Point Property. Suppose we have three candidates for \( opt(i) \): \( a \), \( b \), and \( c \). If the turning point of \( a \) and \( b \) is greater than the turning point of \( b \) and \( c \), it means that \( b \) becomes better than \( a \) after \( c \) becomes better than \( b \). This means that \( b \) is "useless" since it will always be worse than either \( a \) or \( c \).
+
+Now, the algorithm emerges. We loop \( i \) from \( 1 \) to \( N \), maintaining a deque of candidates. We look at the front of deque, which contains the value of \( opt(i) \). Now that \( opt(i) \) is determined, \( dp[i] \) can be quickly calculated using the recurrence \( dp[i] = dp[j] + f(i, j) \) and setting \( j = opt(i) \). Now, \( i \) becomes a candidate for future iterations of \( i \), so it needs to be added to the back of the deque. As discussed in the previous paragraph, to make sure there are no useless candidates, the candidate at the back of the deque needs to be repeatedly removed until the turning point of second-from-back and back candidates of the deque is less than the turning point of the candidate at the back of the deque and \( i \).
+
+However, even after making this check, candidates can later become useless. Suppose we have two candidates for \( opt(i) \): \( a \) and \( b \). Neither of these have been determined to be useless by the criteria in the previous paragraph, but the turning point of \( a \) and \( b \) is at least \( i \). That means \( b \) is better than \( a \) as a candidate and will always be for all \( i' \gt i \), so \( a \) has become useless.
+
+Consequently, \( opt(i) \) is not necessarily the front of the deque. To find \( opt(i) \), at the beginning of the each iteration, the front element of the deque should be removed until the turning point of the front element and second-from-front element is greater than \( i \).
+
+The correctness of the algorithm lies in the fact that the first check also makes sure that the turning point between adjacent elements is increasing from the front to the back of the deque. This means the front of the deque has the best candidate as long as the turning point between the front and the second-from-front is greater than \( i \), which the second check makes sure of.
+
+A C++ implementation is given below:
+
+{{ code is ok, just replace psa[] with p[] }}
+
+The number of times that the turning point is computed is equal to the number of times any element is removed from the deque, plus two per iteration of the main loop. Each element is added and removed at most once, so it is computed an \( O(N) \) number of times. Computing a turning point takes \( O(log N) \) time due to the binary search, so the total time complexity is \( O(N log N) \).
+
+O(N) Technique
+==============
+
+The \( O(N) \) technique is very similar, but is not guaranteed to be always easily applicable. The time complexity reduction comes from computing the turning point of two candidates in \( O(1) \) time.
+
+To show how this is possible, we rearrange the turning point formula for candidates \( j \lt j' \). Recall that \( j' \) is at least as good \( j \) if \( dp[j] + f(i, j) \leq dp[j'] + f(i, j') \).
+
+\[ \require{cancel} \begin{align}
+	\( dp[j] + f(i, j) & \leq dp[j'] + f(i, j') \)
+	\\
+	dp[j] + Ap[i]^2 - 2Ap[i]p[j] + Ap[j]^2 + Bp[i] - Bp[j] + C & \leq dp[j'] + Ap[i]^2 - 2Ap[i]p[j'] + Ap[j']^2 + Bp[i] - Bp[j'] + C
+	\\
+	dp[j] + \cancel{Ap[i]^2} - 2Ap[i]p[j] + Ap[j]^2 + \cancel{Bp[i]} - Bp[j] + \cancel{C} & \leq dp[j'] + \cancel{Ap[i]^2} - 2Ap[i]p[j'] + Ap[j']^2 + \cancel{Bp[i]} - Bp[j'] + \cancel{C}
+	\\
+	dp[j] - dp[j'] + Bp[j'] - Bp[j] & \leq 2Ap[i]p[j] - 2Ap[i]p[j']
+	\\
+	dp[j] - dp[j'] + B(p[j'] - Bp[j]) & \leq 2Ap[i](p[j] - p[j'])
+\end{align} \]
+
+Note that since a[i] is positive, p[i] must be increasing, so \( p[j] - p[j'] \) must be negative, and it is given in the problem statement that \( A \) is negative, so 2A(p[j] - p[j']) is positive, and we can move it to the other side without flipping the inequality sign.
+
+\[ \require{cancel} \begin{align}
+	dp[j] - dp[j'] + B(p[j'] - Bp[j]) & \leq 2Ap[i](p[j] - p[j'])
+	\\
+	\frac{dp[j] - dp[j'] + B(p[j'] - Bp[j])}{2A(p[j] - p[j'])} & \leq p[i]
+\end{align} \]

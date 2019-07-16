@@ -139,7 +139,7 @@
 					</p>
 
 					<p>
-						To speed things up, a <a href="https://archive.mcpt.ca/cpt-lessons/data-structures/prefix-sum-array/">prefix sum array</a> can be used.
+						To speed things up, a prefix sum array can be used.
 						Let \( psa[i] \) be the sum of all elements from \( 1 \) to \( i \) inclusive.
 						Note that the sum from \( j + 1 \) to \( i \) is given by \( psa[i] - psa[j] \).
 						The recurrence is rewritten as:
@@ -261,7 +261,7 @@ int main(){
 				<div class="heading">Monotonic Property</div>
 				<div class="content">
 					<p>
-						The first thing that the Quadrangle Inequality implies is the Montonic Property.
+						The first thing that the Quadrangle Inequality implies is the Monotonic Property.
 					</p>
 
 					<p>
@@ -319,11 +319,13 @@ int main(){
 					</p>
 
 					<p>
-						Note that the \( i \) can approach positive or negative infinity without bounds, meaning that if
-						\( j \) is always better or worse than \( j' \), the property is still satisfied.
+						However, this definition is extended for \( i \) that apporaches negative or positive infinity, which
+						allows for the possibility that \( j \) is always better or worse than \( j' \).
 					</p>
 
 					<p>
+						Now, the only case where this property is broken is if for some \( j \lt j' \), \( j' \) starts off
+						better but after some point \( i \), 
 						Therefore, a more proper formulation states that the Turning Point Property is satisfied if
 						for all \( j \lt k \), there <b>doesn't</b> exist some \( i \lt i' \) where \( j' \) is better at
 						\( i \) but \( j \) is better at \( j' \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \) but
@@ -404,20 +406,101 @@ int main(){
 			<div id="o_nlogn" class="section">
 				<div class="heading">The O(N log N) Technique</div>
 				<div class="content">
-					A sketch of the algorithm follows:
+					<p>
+						With the Turning Point Property in mind, we can shift the focus.
+						Previously, for all \( i \), we have been finding \( opt(i) \).
+						Now, given \( i \), we wish to find which values of \( i' \gt i \) such that \( opt(i') = i \).
+					</p>
+
+					<p>
+						We will define the <i>turning point</i> of two indexes \( j \) and \( j' (j' \gt j) \) as the first index
+						\( i \) such that \( j' \) is better than \( j \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \).
+						Recall that by the Turning Point Property, from \( i \) onwards, \( j \) will never be better than
+						\( j' \).
+					</p>
+
+					<p>
+						In the new algorithm, we loop from a variable \( i \) from \( 1 \) to \( N \). Suppose we can easily
+						get the value of \( opt(i) \) and therefore \( dp[i] \). Now, \( i \) becomes a candidate for
+						\( opt(i') \) for all \( i' \gt i \).
+					</p>
+
+					<p>
+						We maintain a deque of candidates for \( opt(i') \). After each iteration in the before mentioned
+						loop, we push the index \( i \) into the back of the deque. This way, the indexes in the deque
+						increase from front to back.
+					</p>
+					
+					<p>
+						However, one thing to note is that for any indexes
+						\( i \lt j \lt k \lt i'\),
+						if the turning point of \( i \) and \( j \) lies to the right of the turning point of \( j \) and
+						\( k \), then \( j \) can never a candidate for \( opt(i') \), because \( k \) becomes better than
+						\( j \) before \( j \) becomes better than \( i \), making \( j \) "useless". So, before pushing
+						\( i \) into the the back of the deque, we should pop the back element while the turning point of the
+						second-from-back and back element lies to the right of the turning point of the the back element
+						and \( i \).
+					</p>
+
+					<p>
+						By also performing this check when pushing \( i \) into the back of the deque, we also maintain
+						that the turning points between adjacent indexes doesn't decrease as we go from front to back.
+					</p>
+
+					<p>
+						Given that the deque is maintained, the value of \( opt(i) \) for the current iteration of \( i \)
+						can now be quickly determined. 
+					</p>
+
+					<pre class="line-numbers" data-line="14-22,31-39"><code class="language-cpp">#include &lt;stdio.h&gt;
+#include &lt;algorithm&gt;
+#include &lt;deque&gt;
+using namespace std;
+typedef long long int lli;
+const int MN = 1e6+1;
+const lli INF = 1e18;
+lli N, A, B, C, arr[MN], psa[MN], dp[MN];
+
+lli val(int i, int j){
+	return dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
+}
+
+int turn(int j, int k){
+	int l = 1, r = N + 1, m;
+	while(l < r){
+		m = (l + r) / 2;
+		if(val(m, k) >= val(m, j)) r = m;
+		else l = m + 1;
+	}
+	return l;
+}
+
+int main(){
+	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
+	for(int i = 1; i <= N; i++){
+		scanf("%lld", &arr[i]);
+		psa[i] = psa[i - 1] + arr[i];
+	}
+
+	deque<int> opt = {0};
+	for(int i = 1; i <= N; i++){
+		while(opt.size() >= 2 && turn(opt[0], opt[1]) <= i)
+			opt.pop_front(); 
+		dp[i] = val(i, opt.front());
+		while(opt.size() >= 2 && turn(opt[opt.size() - 2], opt[opt.size() - 1]) >= turn(opt[opt.size() - 1], i))
+			opt.pop_back();
+		opt.push_back(i);
+	}
+
+	printf("%lld\n", dp[N]);
+}</code></pre>
+
 				</div>
 			</div>
 
 			<div id="o_n" class="section">
 				<div class="heading">The O(N) Technique</div>
 				<div class="content">
-				</div>
-			</div>
-
-			<div id="cht" class="section">
-				<div class="heading">Relation to the Convex Hull Trick</div>
-				<div class="content">
-					The Convex Hull Trick can be seen as a special case of 1D1D DP.
 				</div>
 			</div>
 
@@ -449,7 +532,7 @@ int main(){
 						\[
 							d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 						\]
-						if and only if \( f(i, j) \) satisfies for all \( j \leq i \),
+						if and \( f(i, j) \) satisfies for all \( j \leq i \),
 						\[
 							f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
 						\]
