@@ -1,0 +1,99 @@
+Proof 1
+=======
+
+First, we prove that the Turning Point Property implies the Monotonic Property. Intuitively, this makes sense because if you can't have some \( j \lt j' \lt i \lt i' \) where \( j' \) is a better candidate for \( i \) than \( j \) but it a worse candidate for \( i' \) than \( j \), it's impossible for \( j' \) be \( opt(i) \) and \( j \) to be \( opt(i') \). Therefore, \( opt(i) \) can't decrease.
+
+We can prove this formally by proving the contrapositive: that if the Monotonic Property is not satisfied, the Turning Point Property is also not satisfied.
+
+First, recall the Turning Point Property states that
+
+\[
+	\forall j \lt j', \nexists i \lt i':
+	\\
+	\begin{align}
+		dp[j'] + f(i, j') & \gt dp[j] + f(i, j)
+		\\
+		dp[j] + f(i', j) & \gt dp[j'] + f(i', j')
+	\end{align}
+\]
+
+The property is not satisfied if there exists a single counterexample, that is
+\[
+	\exists j \lt j', \exists i \lt i':
+	\\
+	\begin{align}
+		dp[j'] + f(i, j') & \gt dp[j] + f(i, j)
+		\\
+		dp[j] + f(i', j) & \gt dp[j'] + f(i', j')
+	\end{align}
+\]
+
+{{ explain why j < i }}
+
+Furthermore, \( \exists j \lt j', \exists i \lt i' \) can just be written as \( \exists j \lt j', \lt i \lt i' \).
+
+Now suppose that the Monotonic Property is not satisfied. That means there must exist some \( i \lt i' ) such that \( opt(i) \gt opt(i') \).
+
+Let \( j' = opt(i) \) and \( j = opt(i') \). Note that \( j' \gt j \).
+
+Since \( j' = opt(i) \) and \( j \neq opt(i) \), it follows that the value that \( j' \) yields for \( dp[i] \) is larger than the value than \( j \) yields. In other words, \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \).
+
+Since \( j = opt(i') \) and \( j' \neq opt(i') \), by similar logic, \( dp[j] + f(i', j) \gt dp[j'] + f(i', j') \).
+
+Putting this together, we have
+\[
+	\exists i \ lt i', \exists j \lt j':
+	\\
+	\begin{align}
+		dp[j'] + f(i, j') & \gt dp[j] + f(i, j)
+		\\
+		dp[j] + f(i', j) & \gt dp[j'] + f(i', j')
+	\end{align}
+\]
+
+{{ explain why j < i }}
+
+Furthermore, \( \exists i \lt i', \exists j \lt j' \) can just be written as \( \exists j \lt j', \lt i \lt i' \). This is the same thing as the Turning Point Property not being satisfied. This completes the proof.
+
+
+Proof 2
+=======
+
+Now, we prove that the Quadrangle Inequality implies the Turning Point Property. Intuitively, this makes sense because if the Quadrangle Inequality is rearranged:
+
+\[ \begin{align}
+	f(i, j) + f(i', j') & \geq f(i', j) + f(i, j')
+	f(i', j') - f(i', j) & \qeq f(i, j') - f(i, j)
+\end{align} \]
+
+If f(i, j') - f(i, j) is interpreted as the "rate of change" of \( j \), when fixing \( i \), and f(i', j') - f(i', j) is the rate of change of \( j \) when fixing \( i' \), that means as you increase \( i \), \( f(i, j') \) increases faster than \( f(i, j) \), so at some point, \( j' \) must overtake \( j \) as a candidate for \( opt(i) \), which is what the Turning Point Property states.
+
+Formally, again, we can prove this by proving the contrapositive: if the Turning Point Property isn't satisfied, the Quadrangle Inequality cannot be satisfied either.
+
+Recall that the Quadrangle Inequality states that \( \forall i \lt i' \lt j \lt j', f(i, j) + f(i', j') \geq f(i', j) + f(i, j') \), so it is not satisfied if \( \exists i \lt i' \lt j \lt j', f(i, j) + f(i', j') \lt f(i', j) + f(i, j') \)
+
+Previously, we have established that the Turning Point Property is not satisfied if
+\[
+	\exists j \lt j' \lt i \lt i':
+	\\
+	\begin{align}
+		dp[j'] + f(i, j') & \gt dp[j] + f(i, j)
+		\\
+		dp[j] + f(i', j) & \gt dp[j'] + f(i', j')
+	\end{align}
+\]
+
+We can add the two inequalities together:
+\[ \require{cancel} \begin{align}
+	dp[j'] + f(i, j') & \gt dp[j] + f(i, j) \\
+	dp[j] + f(i', j) & \gt dp[j'] + f(i', j') \\\\
+
+	dp[j] + dp[j'] + f(i, j') + f(i', j) & \gt dp[j] + dp[j'] + f(i, j) + f(i', j') \\
+	\cancel{dp[j]} + \cancel{dp[j']} + f(i, j') + f(i', j) & \gt \cancel{dp[j]} + \cancel{dp[j']} + f(i, j) + f(i', j') \\
+	f(i, j') + f(i', j) & \gt f(i, j) + f(i', j')
+	f(i, j) + f(i', j') & \lt f(i', j) + f(i, j')
+\end{align} \]
+
+This is the same thing as the Quadrangle Inequality not being satisfied. This completes the proof.
+
+Since the Quadrangle Inequality implies the Turning Point Property and the Turning Point Property implies the Monotonic Property, the Quadrangle Inequality also implies the Monotonic Property.

@@ -1,12 +1,14 @@
-{{
+<!--
 	global notes:
-	let j start at 0 for all dp in this article but mention that it could start at 1 depending on implementation 
-}}
+	let j start at 0 for all dp in this article but mention that it could start at 1 depending on implementation
+
+	set up some schema and CSS for subsections and update the toc accordingly
+-->
 
 Introduction
 ============
 
-1D1D DP, also known as the Slope Trick, is a dynamic programming optimization that reduces the time complexity of a specific recurrence from \( O(N^2) \) to \( O(N log N) \) or \( O(N) \).
+1D1D DP, also known as the Slope Trick or the Two-Pointers method, is a dynamic programming optimization that reduces the time complexity of a specific recurrence from \( O(N^2) \) to \( O(N log N) \) or \( O(N) \).
 
 Pre-Requisite Knowledge
 =======================
@@ -26,9 +28,9 @@ Motivation Problem
 ==================
 Problem Link: <a href="https://dmoj.ca/problem/apio10p1">APIO '10 P1 - Commando</a>
 
-{{ This section is fine, except replace "cost" with "value" }}
+<!-- This section is fine, except replace "cost" with "value" -->
 
-{{ Also, arr[] becomes a[] }}
+<!-- Also, arr[] becomes a[] -->
 
 Naive Solution
 ==============
@@ -53,7 +55,7 @@ Note that \( dp[0] = 0 \) and \( p[0] = 0 \) in this implementation, and choosin
 
 Since we need to iterate through all indexes less than \( i \) to calculate \( dp[i] \), the time complexity is \( O(N^2) \).
 
-{{Change arr[] to a[] and psa[] to p[] in the code}}
+<!--Change arr[] to a[] and psa[] to p[] in the code-->
 
 General Form
 ============
@@ -73,11 +75,11 @@ Quadrangle Inequality
 
 The 1D1D optimization works only if \( f(i, j) \) satisfies a specific property called the Quadrangle Inequality. In some literature, this is called \( f(i, j) \) being "convex".
 
-{{ keep the block but put both forms in}}
+<!-- keep the block but put both forms in-->
 
 Since the only time \( f(i, j) \) is used is when \( j \lt i \), we add the restriction that \( j \lt i \) and \( j' \lt i \).
 
-{{ voice ? }}
+<!-- voice ? -->
 This property looks confusing and difficult to prove given \( f(i, j) \), so we'll come back to it later. This property is important because it implies two other useful properties: the Monotonic Property and the Turning Point Property.
 
 Monotonic Property
@@ -92,11 +94,11 @@ We define \( opt(i) \) to be the value of \( j \) that maximizes \( dp[j] + f(i,
 
 In math notation:
 
-{{block is good}}
+<!--block is good-->
 
 The Monotonic Property states that as \( i \) increases, \( opt(i) \) does not decrease. This can be expressed in math notation in two equivalent ways:
 
-{{block is good}}
+<!--block is good-->
 
 Turning Point Property
 ======================
@@ -111,22 +113,26 @@ In other words, the Turning Point Property states that it is never the case that
 
 This can be written in math notation as:
 
-{{ block is good but also j < j' < i < i' }}
+<!-- block is good but also j < j' < i < i' -->
 
 The O(N²) Technique
 ===================
 
-{{ entire section is fine }}
+<!-- entire section is fine -->
 
 
 The O(N log N) Technique
 ========================
 
+<!-- section should contain more definitions for later use -->
+<!-- introduce \( turn(j, j') ) -->
+<!-- introduce the terms "back check" and "front check" -->
+
 Note that the turning point of two candidates \( j \lt j' \) can be determined with a binary search for the first index where \( dp[j'] + f(i, j') \geq dp[j] + f(i, j) \).
 
 The Turning Point Property includes the idea of "candidates" for \( opt(i) \). In this technique, we keep track of all "useful" candidates.
 
-{{ use j, j' and j'' ??? }}
+<!-- use j, j' and j'' ??? -->
 
 First, we explore a consequence of the Turning Point Property. Suppose we have three candidates for \( opt(i) \): \( a \), \( b \), and \( c \). If the turning point of \( a \) and \( b \) is greater than the turning point of \( b \) and \( c \), it means that \( b \) becomes better than \( a \) after \( c \) becomes better than \( b \). This means that \( b \) is "useless" since it will always be worse than either \( a \) or \( c \).
 
@@ -140,7 +146,7 @@ The correctness of the algorithm lies in the fact that the first check also make
 
 A C++ implementation is given below:
 
-{{ code is ok, just replace psa[] with p[] }}
+<!-- code is ok, just replace psa[] with p[] -->
 
 The number of times that the turning point is computed is equal to the number of times any element is removed from the deque, plus two per iteration of the main loop. Each element is added and removed at most once, so it is computed an \( O(N) \) number of times. Computing a turning point takes \( O(log N) \) time due to the binary search, so the total time complexity is \( O(N log N) \).
 
@@ -163,10 +169,68 @@ To show how this is possible, we rearrange the turning point formula for candida
 	dp[j] - dp[j'] + B(p[j'] - Bp[j]) & \leq 2Ap[i](p[j] - p[j'])
 \end{align} \]
 
-Note that since a[i] is positive, p[i] must be increasing, so \( p[j] - p[j'] \) must be negative, and it is given in the problem statement that \( A \) is negative, so 2A(p[j] - p[j']) is positive, and we can move it to the other side without flipping the inequality sign.
+Note that since a[i] is positive, p[i] must be increasing as \( i \) increases, so \( p[j] - p[j'] \) must be negative, and it is given in the problem statement that \( A \) is negative, so 2A(p[j] - p[j']) is positive, and we can move it to the other side without flipping the inequality sign.
 
 \[ \require{cancel} \begin{align}
 	dp[j] - dp[j'] + B(p[j'] - Bp[j]) & \leq 2Ap[i](p[j] - p[j'])
 	\\
 	\frac{dp[j] - dp[j'] + B(p[j'] - Bp[j])}{2A(p[j] - p[j'])} & \leq p[i]
 \end{align} \]
+
+Now, we can say that for some \( j \lt j' \), \( j' \) at least as good as \( j \) when \( p[i] \) greater than or equal to \( \frac{dp[j] - dp[j'] + B(p[j'] - Bp[j])}{2A(p[j] - p[j'])} \). This turning point function is in terms of \( p[i] \) instead of \( i \), so the code should be modified slightly.
+
+<!-- paragraph needs work -->
+
+The algorithm for the first check remains the exact same. Note that in the first check, we just need to compare two turning points for which is greater. Since \( p[i] \) is increasing as \( i \) increases, the relative position of turning point doesn't change if it in terms of \( p[i] \) instead of \( i \).
+
+For the second check, the turning point just needs to be compared against \( p[i] \) instead of \( i \).
+
+Below is a C++ implementation:
+
+<!-- <deque> implementation -->
+
+Avoiding Floating-Point Numbers
+===============================
+
+To avoid floating points in the previous code example, notice that \( p[i] \) must be greater than or equal to some fractional value for \( j' \) to be at least as good as \( j \), it's enough to check that \( p[i] \) is greater than the ceiling of the fraction.
+
+<!-- explain why back check is ok? -->
+
+We take advantage of the property that
+\[
+	\ceil{\frac{a}{b--> =
+	\begin{cases}
+		\floor{frac{a}{b--> & \text{if } b | a, \\
+		\floor{frac{a}{b--> + 1 & \text{otherwise}
+	\end{cases}
+\]
+
+Where \( b | a \) means "\( b \) divides \( a \)" or "\( a \) is divisible by \( b \)". Only the turning point function needs to be modified slightly:
+
+<!-- <deque> with ceildiv code -->
+
+Since the modulo operator is expensive, this performs slightly slower than the floating-point version, but has the big advantage of eliminating errors.
+
+Two-Pointers Implementation
+===========================
+
+Since the only the back is pushed to, a built-in deque is not required. Only two pointers, one for the back and one for the front, and an array is required. The size of the implicit deque is given by \( \text{back} - \text{front} + 1 \). This method is slightly faster than using a built-in deque.
+
+<!-- just the main loop of the two-pointers code -->
+
+Recognizing the Quadrangle Inequality
+=====================================
+
+<!-- section is fine except for some wording -->
+
+Appendix
+========
+
+<!-- TODO: discuss the differences between the min and max versions -->
+
+<!-- use Cheapest Operation Ever as a model problem for the min version -->
+
+<!-- drop the proof between two forms of QI and state it as a given earlier -->
+
+<!-- link to proofs -->
+<!-- link to example problems -->
