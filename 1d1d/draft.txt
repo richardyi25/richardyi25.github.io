@@ -8,7 +8,7 @@
 Introduction
 ============
 
-1D1D DP, also known as the Slope Trick or the Two-Pointers method, is a dynamic programming optimization that reduces the time complexity of a specific recurrence from \( O(N^2) \) to \( O(N log N) \) or \( O(N) \).
+1D1D DP, also known as the Slope Trick, is a dynamic programming optimization that reduces the time complexity of a specific recurrence from \( O(N^2) \) to \( O(N log N) \) or \( O(N) \).
 
 Pre-Requisite Knowledge
 =======================
@@ -56,6 +56,8 @@ Note that \( dp[0] = 0 \) and \( p[0] = 0 \) in this implementation, and choosin
 Since we need to iterate through all indexes less than \( i \) to calculate \( dp[i] \), the time complexity is \( O(N^2) \).
 
 <!--Change arr[] to a[] and psa[] to p[] in the code-->
+
+Since the time complexity is \( O(N^2) \) and \( N \leq 10^6 \), this code won't be able to get full points. The 1D1D optimization allows this recurrence to pass by taking advantage of some key properties.
 
 General Form
 ============
@@ -198,10 +200,10 @@ To avoid floating points in the previous code example, notice that \( p[i] \) mu
 
 We take advantage of the property that
 \[
-	\ceil{\frac{a}{b--> =
+	\left\lceil \frac{a}{b} \right\rceil =
 	\begin{cases}
-		\floor{frac{a}{b--> & \text{if } b | a, \\
-		\floor{frac{a}{b--> + 1 & \text{otherwise}
+		\left\lfloor \frac{a}{b} \right\rfloor, & \text{ if } b | a \\
+		\left\lfloor \frac{a}{b} \right\rfloor + 1, & \text{ otherwise}
 	\end{cases}
 \]
 

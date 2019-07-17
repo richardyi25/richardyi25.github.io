@@ -2,6 +2,7 @@
 <!-- maybe normalize the section names -->
 <!-- also, make some sections less wordy -->
 <!-- fix the awful title tags for all sites -->
+<!-- does dp[] become d[]? -->
 
 <!DOCTYPE html>
 
@@ -44,115 +45,97 @@
 			</ul>
 		</div>
 
-		<div id="body">
-			<div id="prereq">
+		<div id="main">
+			<div id="intro">
 				<div class="heading">Introduction</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
-						1D1D DP, also known as the Slope Trick, is a dynamic programming optimization that
-						reduces a specific type of \( O(N^2) \) DP solutions to \( O(N) \) or \( O(N \log N) \). 
-						This is a well-known technique that is documented in English primarily in
-						<a href="https://sites.google.com/site/ubcprogrammingteam/news/1d1ddynamicprogrammingoptimization-parti">this article</a>
-						and <a href="https://codeforces.com/blog/entry/8219?#comment-139241">this comment</a> on a Codeforces blog post.
-						This is one of many techniques that can be used to lower the time complexity of a DP recurrence that
-						satisfies specific properties.
-					</p>
-
-					<p>
-						The purpose of this article is to combine all information into one source and also provide reasoning
-						behind the correctness of the technique.
+						1D1D DP, also known as the Slope Trick, is a dynamic programming optimization that reduces the time complexity of a specific recurrence from \( O(N^2) \) to \( O(N \log N) \) or \( O(N) \).
 					</p>
 				</div>
 			</div>
 
 			<div id="prereq">
 				<div class="heading">Pre-Requisite Knowledge</div>
-				<div class="content">
+				<div class="subsection">
 					This article will assume you know about the following:
 					<ul>
 						<li>Time Complexity</li>
 						<li>Prefix Sum Array</li>
 						<li>Basic Dynamic Programming</li>
 						<li>Binary Search</li>
-						<li>Deque</li>
+						<li>Deque Data Structure</li>
 					</ul>
 
-					<!-- TODO a[i] vs f(i), and also do you use subscripts, and one-letter array/funcs maybe? -->
-					
 					<p>
-						To review math notation, the \( \max \) operator works like \( \sum \), except instead of summing
-						the value to the right in all iterations, the maximum value across all iterations is taken.
-						The \( \argmax \) operator is similar, but it instead represents the value of the iterated variable
-						that yields the maximum.
+						You should also be familiar with some math operators. \( \displaystyle \sum_{i = 1}^{10} f(i) \) should be read as "The sum of \( f(i) \) over all values of \( i \) from \( 1 \) to \( 10 \). Similarly, \( \displaystyle \max_{i = 1}^{10} f(i) \) should be read as "The maximum of \( f(i) \) over all values of \( i \) from \( 1 \) to \( 10 \)". Also, \( \displaystyle \argmax_{i = 1}^{10} f(i) \) should be read as "The value of \( i \) that yields the maximum value of \( f(i) \), where \( i \) is between \( 1 \) and \( 10\)".
 					</p>
 
 					<p>
-						Additionally, the \( \forall \) symbol means "for all", the \( \exists \) symbol means "there exists", and
-						the \( \nexists \) symbol means "there does not exist".
+						The symbol \( \exists \) means "there exists", the symbol \( \nexists \) means "there does not exist", and the symbol \( \forall \) means "for all". For example, \( \forall i \lt j, \exists k: f(i, k) \gt f(j, k) \) should be read as "For all pairs \( i \) and \( j \) such that \(i \lt j \), there exists some \( k \) such that \( f(i, k) \gt f(j, k) \)".
+					</p>
 
-						For example, the statement \( \forall x, \exists y \gt x: f(x, y) = 1 \) should read as "For all \( x \),
-						there exists some \( y \gt x \) such that \( f(x, y) = 1 \).
+					<p>
+						Finally, \( \lfloor x \rfloor \) means \( x \), rounded down, and \( \lceil x \rceil \) means \( x \), rounded up.
 					</p>
 				</div>
 			</div>
 
 			<div id="motivation" class="section">
-				<div class="heading">A Motivation Problem</div>
-				<div class="content">
+				<div class="heading">Motivation Problem</div>
+				<div class="subsection">
 					<p>
-						Possibly the most classic problem where this technique can be applied is
-						<a href="https://dmoj.ca/problem/apio10p1">Commando</a> from the APIO.
+						Problem Link: <a href="https://dmoj.ca/problem/apio10p1">APIO '10 P1 - Commando</a>
 					</p>
 
 					<p>
 						To summarize the problem statement: Given an array of \( N \) positive numbers, \( (N \leq 10^6) \), partition it into any number of contiguous subarrays.
-						The cost for each subarray is as follows: if \( x \) is the sum of the elements in the subarray,
-						the cost is \( Ax^2 + Bx + C \) where \( A \lt 0 \) and \( A \), \(B  \),
+						The value for each subarray is as follows: if \( x \) is the sum of the elements in the subarray,
+						the value is \( Ax^2 + Bx + C \) where \( A \lt 0 \) and \( A \), \(B  \),
 						and \( C \) are given constants.
-						The total cost is the sum of costs of the subarrays that the array is partitioned into.
-						Find the maximum possible total cost.
+						The total value is the sum of values of the subarrays that the array is partitioned into.
+						Find the maximum possible total value.
 					</p>
 
 					<p>
 						For the rest of the article, 1-index notation will be used, i.e. the indexes start from \( 1 \) and
-						end in \( N \). The array in the problem will be referred to as \( arr[] \).
+						end in \( N \). The array in the problem will be referred to as \( a[] \).
 					</p>
 				</div>
 			</div>
 
 			<div id="naive">
 				<div class="heading">Naive Solution</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
-						A naive DP solution emerges. Let \( dp[i] \) be the maximum possible cost if the array only contained the
-						first \( i \) elements. Then, the answer to \( dp[i] \) is to pick some \( j \lt i \) and take the
-						subarray beginning at \( j + 1 \) and ending at \( i \) as a partition and use the previously
-						calculated \( dp[j] \) which tells us how to partition the rest of the array.
-						It is uncertain which \( j \) will give the maximum value for \( dp[i] \)
-						so all of them need to be tried out.
-
-						In math notation, this is expressed as
-						\[
-							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + A \cdot s(j + 1, j)^2 + B \cdot s(j + 1, i) + C \right]
-						\]
-						where \( s(j + 1, i) \) is the of the elements of \( arr \) from \( j + i \) to \( i \), inclusive.
+						Let \( p[i] \) be the sum of all values of \( a[i] \) from \( 1 \) to \( i \). Note that \( sum_{k = l}^{r} a[k] = p[r] - p[l - 1] \) and that all values of \( p[i] \) for \( 1 \leq i \leq N \) can be calculated in \( O(N) \) since \( p[i] = p[i - 1] + a[i] \).
 					</p>
 
 					<p>
-						To speed things up, a prefix sum array can be used.
-						Let \( psa[i] \) be the sum of all elements from \( 1 \) to \( i \) inclusive.
-						Note that the sum from \( j + 1 \) to \( i \) is given by \( psa[i] - psa[j] \).
-						The recurrence is rewritten as:
-						\[
-							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + A(psa[i] - psa[j])^2 + B(psa[i] - psa[j]) + C \right]
-						\]
-						The time complexity is \( O(N^2) \) because there are \( O(N) \) states, which each rely on \( O(N) \)
-						previous states.
+						Now, let \( dp[i] \) be the answer to the problem for the first \( i \) elements of \( a[] \), that is the maximum value that can be obtained by optimally partitioning the first \( i \) elements into subarrays. To get the answer, we pick some \( j \lt i \) and use the subarray from \( j + 1 \) to \( i \), and use \( dp[j] \) to determine the optimal value for the rest of the array from \( 1 \) to \( j \).
 					</p>
 					
 					<p>
-						Below is a C++ implementation.  The important DP part is highlighted.
+						The answer for \( dp[i] \) is then the maximum value over all choices of \( j \lt  i \), which can be written as:
+
+						\[ \begin{align}
+							dp[i] &= max_{j = 0}{i - 1} \left[ dp[j] + value(p[i] - p[j]) \right]
+						\end{align} \]
 					</p>
+
+					<p>
+						Where \( value(x) \) = \( Ax^2 + Bx + C\). This can be expanded to
+
+						\[ \begin{align}
+							dp[i] &= max_{j = 0}{i - 1} \left[ dp[j] + A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \right]
+						\end{align} \]
+					</p>
+
+					<p>
+Note that \( dp[0] = 0 \) and \( p[0] = 0 \) in this implementation, and choosing \( j = 0 \) represents taking the entire current array as the only subarray. Since we need to iterate through all indexes less than \( i \) to calculate \( dp[i] \), the time complexity is \( O(N^2) \).
+					</p>
+
+					<p>Below is a C++ implemenation:</p>
 
 					<pre class="line-numbers" data-line="16-23"><code class="language-cpp">#include &lt;stdio.h&gt;
 #include &lt;algorithm&gt;
@@ -160,19 +143,19 @@ using namespace std;
 typedef long long int lli;
 const int MN = 1e6+1;
 const lli INF = 1e18;
-lli N, A, B, C, arr[MN], psa[MN], dp[MN];
+lli N, A, B, C, a[MN], p[MN], dp[MN];
 
 int main(){
 	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
-	for(int i = 1; i <= N; i++){
-		scanf("%lld", &arr[i]);
-		psa[i] = psa[i - 1] + arr[i];
+	for(int i = 1; i &lt;= N; i++){
+		scanf("%lld", &a[i]);
+		p[i] = p[i - 1] + a[i];
 	}
 
-	for(int i = 1; i <= N; i++){
+	for(int i = 1; i &lt;= N; i++){
 		lli best = -INF;
-		for(int j = 0; j < i; j++){
-			lli val = dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
+		for(int j = 0; j &lt; i; j++){
+			lli val = dp[j] + A*(p[i] - p[j])*(p[i] - p[j]) + B*(p[i] - p[j]) + C;
 			best = max(best, val);
 		}
 		dp[i] = best;
@@ -181,155 +164,128 @@ int main(){
 	printf("%lld\n", dp[N]);
 }</code></pre>
 					<p>
-						A time complexity of \( O(N^2) \) won't be able to pass a problem with \( N \leq 10^6 \). 1D1D DP
-						optimizes the time complexity to \( O(N \log N) \) or \( O(N) \) which let the solution pass.
+						Since the time complexity is \( O(N^2) \) and \( N \leq 10^6 \), this code won't be able to get full points. The 1D1D optimization allows this recurrence to pass by taking advantage of some key properties.
 					</p>
 				</div>
 			</div>
 
 			<div id="relation" class="section">
 				<div class="heading">General Form</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
-						The name 1D1D refers to a dynamic programming recurrence relation with one dimension (1D) of states
-						which each rely on one dimension (1D) states.
+						In the motivation problem, there are \( O(N) \) states, each relying on \( O(N) \) previous states. This is where the name "1D1D" comes from: 1 dimension of states, each relying on one dimension of previous states. All 1D1D DP recurrences follow the form of
+					</p>
+
+					<div class="block">
+						<div class="block-heading">General Form</div>
+						\[
+							dp[i] = \max_{j = 0}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+					</div>
+
+					<p>
+						Note that depending on the problem and implementation, \( max \) may be replaced with \( min \) and \( j = 0 \) might instead be \( j = 1 \).
 					</p>
 
 					<p>
-						The recurrence relation from the motivation problem can be generalized to all relations that
-						satisfy the form
-						<div class="block">
-							<div class="block-heading">General Form</div>
-							\[
-								dp[i] = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-							\]
-						</div>
-						where \( f(i, j) \) is some "cost" or "weight" function associated with both \( i \) and \( j \).
-						For example, in the motivation problem, \( f(i, j) = A(psa[i] - psa[j])^2 + (psa[i] - psa[j]) + C \).
+						The function \( f(i, j) \) represents a cost or weight function in minimization problems and a value or utility function in maximization problems. In the motivation problem, \( f(i, j) = A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \).
 					</p>
 				</div>
 			</div>
 
 			<div id="quad" class="section">
 				<div class="heading">The Quadrangle Inequality</div>
-				<div class="content">
-					Recall that the general recurrence relation for 1D1D DP is 
-					\[
-						dp[i] = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-					\]
-					The Quadrangle Inequality is a property of \( f(i, j) \), which if satisfied, implies two other
-					properties: the Monotonic Property and the Turning Point Property.
+				<div class="subsection">
+					<p>
+						The 1D1D optimization works only if \( f(i, j) \) satisfies a specific property called the Quadrangle Inequality. In some literature, this is called \( f(i, j) \) being "convex". There are two equivalent forms of the inequality:
+					</p>
+
 					<div class="block">
 						<div class="block-heading">Quadrangle Inequality</div>
+						<!-- change the order of f(i', j) and f(i, j') as needed -->
 						\[
 							\forall j \lt i,
-							f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
+							f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
+						\]
+						<center>or</center>
+						\[
+							\forall j \lt j' \lt i \lt i',
+							f(i, j) + f(i', j') \geq f(i', j) + f(i, j') 
 						\]
 					</div>
 
 					<p>
-						The restriction that \( j \lt i \) is because so the only time \( f(i, j) \) is used is when \( j \lt i \).
+						Since the only time \( f(i, j) \) is used is when \( j \lt i \), we add the restriction that \( j \lt i \) and \( j' \lt i \).
 					</p>
 
 					<p>
-						This form of the inequality is the most common in literature but not very useful. If rearranged into
-						\( f(i + 1, j + 1) - f(i + 1, j) \leq f(i, j + 1) - f(i, j) \),
-						then it gives the intuition that as \( i \) increases, the rate of change of \( f(i, j) \) in respect to \( j \) increases.
-					</p>
-
-					<p>
-						If rearranged like into \( f(i + 1, j + 1) - f(i, j + 1) \leq f(i + 1, j) - f(i, j) \),
-						then it gives the intuition that as \( j \) increases, the rate of change of \( f(i, j) \) in respect to \( i \) increases.
-					</p>
-
-					<p>
-						Because as one thing increases, the rate of change of something increases, the Quadrangle Inequality
-						is sometimes referred to as \( f(i, j) \) being convex or concave.
-					</p>
-
-					<p>
-						This is also written in the form
-						\[
-							\forall j \lt j' \lt i \lt i', f(i, j) + f(i', j') \leq f(i', j) + f(i, j')
-						\]
-						The statement given above is a specific case of this more general case where \( i' = i + 1 \) and \( j' = j + 1 \).
+						<!-- voice ? -->
+						This property looks confusing and difficult to prove given \( f(i, j) \), so we'll come back to it later. This property is important because it implies two other useful properties: the Monotonic Property and the Turning Point Property.
 					</p>
 				</div>
 			</div>
 
 			<div id="mono" class="section">
 				<div class="heading">Monotonic Property</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
-						The first thing that the Quadrangle Inequality implies is the Monotonic Property.
-					</p>
-
-					<p>
-						Recall that the general recurrence relation for 1D1D DP is 
+						Recall that the general recurrence relation is
 						\[
-							dp[i] = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+							dp[i] = \max_{j = 1}^{i - 1} \left[ dp[j] + f(i, j) \right]
 						\]
-						Let's define \( opt(i) \) to be the value of \( j \) that you use to in order to compute
-						the value of \( dp[i] \), i.e. the value of \( j (j \lt i) \) for which \( dp[j] + f(i, j) \)
-						is minimized. (The \( opt \) comes from "optimal"). We can write this in math notation as
-						<div class="block">
-							<div class="block-heading">
-								Definition of \( opt(i) \)
-							</div>
-							\[
-								opt(i) = \argmax_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-							\]
-						</div>
-						The <b>Monotonic Property</b> is satisfied if as \( i \) increases, \( opt(i) \) does not decrease.
 					</p>
 
 					<p>
-						This can be expressed in math notation in two equivalent statements:
-
-						<div class="block">
-							<div class="block-heading">Monotonic Property</div>
-							\[
-								\forall i, opt(i) \leq opt(i + 1)
-							\]
-							<center>or<center>
-							\[
-							   \forall i \lt i', opt(i) \leq opt(i')
-							\]
-						</div>
+						We define \( opt(i) \) to be the value of \( j \) that maximizes \( dp[j] + f(i, j) \), that is, the value of \( j \) that is used to get the final value of \( dp[i] \).
 					</p>
 
 					<p>
-						You can read the proof that the Quadrangle Inequality proves the Monotonic Property <a href="proof1.html">here</a>.
+						We can write this in math notation as
 					</p>
+
+					<div class="block">
+						<div class="block-heading">
+							Definition of \( opt(i) \)
+						</div>
+						\[
+							opt(i) = \argmax_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+						\]
+					</div>
+
+					<p>
+						The Monotonic Property states that as \( i \) increases, \( opt(i) \) does not decrease. This can be expressed in math notation in two equivalent ways:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Monotonic Property</div>
+						\[
+							\forall i, opt(i) \leq opt(i + 1)
+						\]
+						<center>or<center>
+						\[
+						   \forall i \lt i', opt(i) \leq opt(i')
+						\]
+					</div>
 				</div>
 			</div>
 
 			<div id="turning" class="section">
 				<div class="heading">Turning Point Property</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
-						The second property that the Quadrangle Inequality implies is the Turning Point Property.
+						Conceptually, if we're trying to calculate \( dp[i] \), then all \( j \lt i \) are considered possible "candidates" for \( opt(i) \). For some \( j \) and \( j' \), \( j \) is considered to be a "better" candidate if it yields a larger value for \( dp[i] \), that is, \( dp[j] + f(i, j) \gt dp[j'] + f(i, j') \).
 					</p>
 
 					<p>
-						The Turning Point Property is satisfied if for all \( j \lt j' \), there exists a singular \( i \)
-						such that for all indexes \( \leq i \), it is better to use \( j \) than \( j' \), i.e.
-						\( dp[j] + f(i, j) \gt dp[j'] + f(i, j') \) but for all indexes \( \gt i \), it is better to use
-						\( j' \) than \( j \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \).
+						The Turning Point Property states that for all \( j \lt j' \), there must exist some "turning point" index \( i \), where \( j' \) becomes a better candidate than \( j \). For all indexes less than \( i \), \( j \) is a better candidate, but for all indexes greater than or equal to \( i \), \( j' \) is a better candidate.
 					</p>
 
 					<p>
-						However, this definition is extended for \( i \) that apporaches negative or positive infinity, which
-						allows for the possibility that \( j \) is always better or worse than \( j' \).
+						This turning point might be less than \( 0 \), in which case \( j' \) is always a better candidate, or more than \( N \) (past the end of the array), in which case \( j \) is always better.
 					</p>
 
 					<p>
-						Now, the only case where this property is broken is if for some \( j \lt j' \), \( j' \) starts off
-						better but after some point \( i \), 
-						Therefore, a more proper formulation states that the Turning Point Property is satisfied if
-						for all \( j \lt k \), there <b>doesn't</b> exist some \( i \lt i' \) where \( j' \) is better at
-						\( i \) but \( j \) is better at \( j' \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \) but
-						\( dp[j] + f(i', j) \gt dp[j'] + f(i', j) \).
+						In other words, the Turning Point Property states that it is never the case that for some \( j \lt j' \), \( j' \) is a better candidate at some index \( i \), but at a later index \( i' \), \( j \) is a better candidate.
 					</p>
 
 					<p>
@@ -337,10 +293,12 @@ int main(){
 						<div class="block">
 							<div class="block-heading">Turning Point Property</div>
 							\[
-								\forall j \lt j', \nexists i \lt i':
+								\forall j \lt j', \nexists j \lt j' \lt i \lt i':
 								\\
 								\begin{align}
 									dp[j'] + f(i, j') & \gt dp[j] + f(i, j)
+									\\
+									& \text{and}
 									\\
 									dp[j] + f(i', j) & \gt dp[j'] + f(i', j)
 								\end{align}
@@ -352,43 +310,43 @@ int main(){
 
 			<div id="o_nsquared" class="section">
 				<div class="heading">The O(N²) Technique</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
 						Since we know that \( opt(i) \) doesn't decrease, we can keep track of \( opt(i - 1) \) in a variable and instead of calculating
 						\[
-							dp[i] = \min_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+							dp[i] = \max_{j = 0}^{i - 1} \left[ d_j + f(i, j) \right]
 						\]
 						we can make a small change and calculate
 						\[
-							dp[i] = \min_{j = opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
+							dp[i] = \max_{j = opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
 						\]
 						This solution is still \( O(N^2) \) and in the worst case, \( g(i) = 0 \) for all \( i \), but in practice, this will often
 						be fast enough to pass.
 					</p>
 
 					<p>
-						Below is a C++ implementation.  The important DP part is highlighted.
+						Below is a C++ implementation:
 						<pre class="line-numbers" data-line="16-27"><code class="language-cpp">#include &lt;stdio.h&gt;
 #include &lt;algorithm&gt;
 using namespace std;
 typedef long long int lli;
 const int MN = 1e6+1;
 const lli INF = 1e18;
-lli N, A, B, C, arr[MN], psa[MN], dp[MN];
+lli N, A, B, C, a[MN], p[MN], dp[MN];
 
 int main(){
-	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
-	for(int i = 1; i <= N; i++){
-		scanf("%lld", &arr[i]);
-		psa[i] = psa[i - 1] + arr[i];
+	scanf("%lld %lld %lld %lld", &N, &p, &B, &C);
+	for(int i = 1; i &lt;= N; i++){
+		scanf("%lld", &a[i]);
+		p[i] = p[i - 1] + a[i];
 	}
 
 	int opt = 0;
-	for(int i = 1; i <= N; i++){
+	for(int i = 1; i &lt;= N; i++){
 		lli best = -INF;
-		for(int j = opt; j < i; j++){
-			lli val = dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
-			if(val > best){
+		for(int j = opt; j &lt; i; j++){
+			lli val = dp[j] + p*(p[i] - p[j])*(p[i] - p[j]) + B*(p[i] - p[j]) + C;
+			if(val &gt; best){
 				best = val;
 				opt = j;
 			}
@@ -405,51 +363,37 @@ int main(){
 
 			<div id="o_nlogn" class="section">
 				<div class="heading">The O(N log N) Technique</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
-						With the Turning Point Property in mind, we can shift the focus.
-						Previously, for all \( i \), we have been finding \( opt(i) \).
-						Now, given \( i \), we wish to find which values of \( i' \gt i \) such that \( opt(i') = i \).
+						Note that the turning point of two candidates \( j \lt j' \) can be determined with a binary search for the first index where \( dp[j'] + f(i, j') \geq dp[j] + f(i, j) \).
 					</p>
 
 					<p>
-						We will define the <i>turning point</i> of two indexes \( j \) and \( j' (j' \gt j) \) as the first index
-						\( i \) such that \( j' \) is better than \( j \), i.e. \( dp[j'] + f(i, j') \gt dp[j] + f(i, j) \).
-						Recall that by the Turning Point Property, from \( i \) onwards, \( j \) will never be better than
-						\( j' \).
+						The Turning Point Property includes the idea of "candidates" for \( opt(i) \). In this technique, we keep track of all "useful" candidates.
 					</p>
 
 					<p>
-						In the new algorithm, we loop from a variable \( i \) from \( 1 \) to \( N \). Suppose we can easily
-						get the value of \( opt(i) \) and therefore \( dp[i] \). Now, \( i \) becomes a candidate for
-						\( opt(i') \) for all \( i' \gt i \).
+						First, we explore a consequence of the Turning Point Property. Suppose we have three candidates for \( opt(i) \): \( a \), \( b \), and \( c \). If the turning point of \( a \) and \( b \) is greater than the turning point of \( b \) and \( c \), it means that \( b \) becomes better than \( a \) after \( c \) becomes better than \( b \). This means that \( b \) is "useless" since it will always be worse than either \( a \) or \( c \).
 					</p>
 
 					<p>
-						We maintain a deque of candidates for \( opt(i') \). After each iteration in the before mentioned
-						loop, we push the index \( i \) into the back of the deque. This way, the indexes in the deque
-						increase from front to back.
+						Now, the algorithm emerges. We loop \( i \) from \( 1 \) to \( N \), maintaining a deque of candidates. We look at the front of deque, which contains the value of \( opt(i) \). Now that \( opt(i) \) is determined, \( dp[i] \) can be quickly calculated using the recurrence \( dp[i] = dp[j] + f(i, j) \) and setting \( j = opt(i) \). Now, \( i \) becomes a candidate for future iterations of \( i \), so it needs to be added to the back of the deque. As discussed in the previous paragraph, to make sure there are no useless candidates, the candidate at the back of the deque needs to be repeatedly removed until the turning point of second-from-back and back candidates of the deque is less than the turning point of the candidate at the back of the deque and \( i \).
+					</p>
+
+					<p>
+						However, even after making this check, candidates can later become useless. Suppose we have two candidates for \( opt(i) \): \( a \) and \( b \). Neither of these have been determined to be useless by the criteria in the previous paragraph, but the turning point of \( a \) and \( b \) is at least \( i \). That means \( b \) is better than \( a \) as a candidate and will always be for all \( i' \gt i \), so \( a \) has become useless.
 					</p>
 					
 					<p>
-						However, one thing to note is that for any indexes
-						\( i \lt j \lt k \lt i'\),
-						if the turning point of \( i \) and \( j \) lies to the right of the turning point of \( j \) and
-						\( k \), then \( j \) can never a candidate for \( opt(i') \), because \( k \) becomes better than
-						\( j \) before \( j \) becomes better than \( i \), making \( j \) "useless". So, before pushing
-						\( i \) into the the back of the deque, we should pop the back element while the turning point of the
-						second-from-back and back element lies to the right of the turning point of the the back element
-						and \( i \).
+						Consequently, \( opt(i) \) is not necessarily the front of the deque. To find \( opt(i) \), at the beginning of the each iteration, the front element of the deque should be removed until the turning point of the front element and second-from-front element is greater than \( i \).
 					</p>
 
 					<p>
-						By also performing this check when pushing \( i \) into the back of the deque, we also maintain
-						that the turning points between adjacent indexes doesn't decrease as we go from front to back.
+						The correctness of the algorithm lies in the fact that the first check also makes sure that the turning point between adjacent elements is increasing from the front to the back of the deque. This means the front of the deque has the best candidate as long as the turning point between the front and the second-from-front is greater than \( i \), which the second check makes sure of.
 					</p>
 
 					<p>
-						Given that the deque is maintained, the value of \( opt(i) \) for the current iteration of \( i \)
-						can now be quickly determined. 
+						A C++ implementation is given below:
 					</p>
 
 					<pre class="line-numbers" data-line="14-22,31-39"><code class="language-cpp">#include &lt;stdio.h&gt;
@@ -459,17 +403,17 @@ using namespace std;
 typedef long long int lli;
 const int MN = 1e6+1;
 const lli INF = 1e18;
-lli N, A, B, C, arr[MN], psa[MN], dp[MN];
+lli N, A, B, C, arr[MN], p[MN], dp[MN];
 
 lli val(int i, int j){
-	return dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
+	return dp[j] + A*(p[i] - p[j])*(p[i] - p[j]) + B*(p[i] - p[j]) + C;
 }
 
 int turn(int j, int k){
 	int l = 1, r = N + 1, m;
-	while(l < r){
+	while(l &lt; r){
 		m = (l + r) / 2;
-		if(val(m, k) >= val(m, j)) r = m;
+		if(val(m, k) &gt;= val(m, j)) r = m;
 		else l = m + 1;
 	}
 	return l;
@@ -477,17 +421,17 @@ int turn(int j, int k){
 
 int main(){
 	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
-	for(int i = 1; i <= N; i++){
+	for(int i = 1; i &lt;= N; i++){
 		scanf("%lld", &arr[i]);
-		psa[i] = psa[i - 1] + arr[i];
+		p[i] = p[i - 1] + arr[i];
 	}
 
-	deque<int> opt = {0};
-	for(int i = 1; i <= N; i++){
-		while(opt.size() >= 2 && turn(opt[0], opt[1]) <= i)
+	deque&lt;int&gt; opt = {0};
+	for(int i = 1; i &lt;= N; i++){
+		while(opt.size() &gt;= 2 && turn(opt[0], opt[1]) &lt;= i)
 			opt.pop_front(); 
 		dp[i] = val(i, opt.front());
-		while(opt.size() >= 2 && turn(opt[opt.size() - 2], opt[opt.size() - 1]) >= turn(opt[opt.size() - 1], i))
+		while(opt.size() &gt;= 2 && turn(opt[opt.size() - 2], opt[opt.size() - 1]) &gt;= turn(opt[opt.size() - 1], i))
 			opt.pop_back();
 		opt.push_back(i);
 	}
@@ -495,106 +439,167 @@ int main(){
 	printf("%lld\n", dp[N]);
 }</code></pre>
 
+					<p>
+						The number of times that the turning point is computed is equal to the number of times any element is removed from the deque, plus two per iteration of the main loop. Each element is added and removed at most once, so it is computed an \( O(N) \) number of times. Computing a turning point takes \( O(\log N) \) time due to the binary search, so the total time complexity is \( O(N \log N) \).
+					</p>
 				</div>
 			</div>
 
 			<div id="o_n" class="section">
 				<div class="heading">The O(N) Technique</div>
-				<div class="content">
+				<div class="subsection">
+					<p>
+						The \( O(N) \) technique is very similar, but is not guaranteed to be always easily applicable. The time complexity reduction comes from computing the turning point of two candidates in \( O(1) \) time.
+					</p>
+
+					<p>
+						To show how this is possible, we rearrange the turning point formula for candidates \( j \lt j' \). Recall that \( j' \) is at least as good \( j \) if \( dp[j] + f(i, j) \leq dp[j'] + f(i, j') \).
+					</p>
+
+					<p>
+						\[ \require{cancel} \begin{align}
+							 dp[j] + f(i, j) & \leq dp[j'] + f(i, j')
+							\\
+							dp[j] + Ap[i]^2 - 2Ap[i]p[j] + Ap[j]^2 + Bp[i] - Bp[j] + C & \leq dp[j'] + Ap[i]^2 - 2Ap[i]p[j'] + Ap[j']^2 + Bp[i] - Bp[j'] + C
+							\\
+							dp[j] + \cancel{Ap[i]^2} - 2Ap[i]p[j] + Ap[j]^2 + \cancel{Bp[i]} - Bp[j] + \cancel{C} & \leq dp[j'] + \cancel{Ap[i]^2} - 2Ap[i]p[j'] + Ap[j']^2 + \cancel{Bp[i]} - Bp[j'] + \cancel{C}
+							\\
+							dp[j] - dp[j'] + Bp[j'] - Bp[j] & \leq 2Ap[i]p[j] - 2Ap[i]p[j']
+							\\
+							dp[j] - dp[j'] + B(p[j'] - Bp[j]) & \leq 2Ap[i](p[j] - p[j'])
+						\end{align} \]
+
+							Note that since \( a[i] \) is positive, \( p[i] \) must be increasing as \( i \) increases, so \( p[j] - p[j'] \) must be negative, and it is given in the problem statement that \( A \) is negative, so \( 2A(p[j] - p[j']) \) is positive, and we can move it to the other side without flipping the inequality sign.
+
+							\[ \require{cancel} \begin{align}
+								dp[j] - dp[j'] + B(p[j'] - Bp[j]) & \leq 2Ap[i](p[j] - p[j'])
+								\\\\
+								\frac{dp[j] - dp[j'] + B(p[j'] - Bp[j])}{2A(p[j] - p[j'])} & \leq p[i]
+							\end{align} \]
+					</p>
+
+					<p>
+						Now, we can say that for some \( j \lt j' \), \( j' \) at least as good as \( j \) when \( p[i] \) greater than or equal to \( \frac{dp[j] - dp[j'] + B(p[j'] - Bp[j])}{2A(p[j] - p[j'])} \). This turning point function is in terms of \( p[i] \) instead of \( i \), so the code should be modified slightly.
+					</p>
+
+					<p>
+						The algorithm for the first check remains the exact same. Note that in the first check, we just need to compare two turning points for which is greater. Since \( p[i] \) is increasing as \( i \) increases, the relative position of turning point doesn't change if it in terms of \( p[i] \) instead of \( i \).
+					</p>
+
+					<p>
+						For the second check, the turning point just needs to be compared against \( p[i] \) instead of \( i \).
+					</p>
+
+					<pre class="line-numbers" data-line="10-14,25"><code class="language-cpp">#include &lt;stdio.h&gt;
+#include &lt;algorithm&gt;
+#include &lt;deque&gt;
+using namespace std;
+typedef long long int lli;
+const int MN = 1e6+1;
+const lli INF = 1e18;
+lli N, A, B, C, a[MN], p[MN], dp[MN];
+
+double turn(int j, int k){
+	return
+	(dp[j] - dp[k] + A*(p[j]*p[j] - p[k]*p[k]) + B*(p[k] - p[j])) /
+	(2.0 * A * (p[j] - p[k]));
+}
+
+int main(){
+	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
+	for(int i = 1; i &lt;= N; i++){
+		scanf("%lld", &a[i]);
+		p[i] = p[i - 1] + a[i];
+	}
+
+	deque&lt;int&gt; opt = {0};
+	for(int i = 1; i &lt;= N; i++){
+		while(opt.size() &gt;= 2 && turn(opt[0], opt[1]) &lt;= p[i])
+			opt.pop_front(); 
+		int j = opt.front();
+		dp[i] = dp[j] + A*(p[i] - p[j])*(p[i] - p[j]) + B*(p[i] - p[j]) + C;
+		while(opt.size() &gt;= 2 && turn(opt[opt.size() - 2], opt[opt.size() - 1]) &gt;= turn(opt[opt.size() - 1], i))
+			opt.pop_back();
+		opt.push_back(i);
+	}
+
+	printf("%lld\n", dp[N]);
+}</code></pre>
 				</div>
 			</div>
 
 			<div id="recognize" class="section">
 				<div class="heading">Recognizing the Quadrangle Inequality</div>
-				<div class="content">
+				<div class="subsection">
 					<p>
 						To illustrate how we can prove the Quadrangle Inequality for a recurrence, <a href="quad.html">here</a> is an example of an algebraic proof
 						for the motivation problem, APIO Commando.
 					</p>
 
 					<p>
-						While it is possible to write out, expand, and factor terms by hand on paper, it might be more viable,
-						especially during contest, to abandon trying to prove the Quadrangle Inequality. Instead, the naive
-						\( O(N^2) \) solution can be coded up, (not the optimzied version discussed in this article), and if the
-						values of \( opt(i) \) can be printed out. If \( opt(i) \) does not decrease for several small test inputs,
-						the Quandrangle Inequality is <i>probably</i> satisfied.
+						While it is possible to write out, expand, and factor terms by hand on paper, it might be more viable, especially during contest, to abandon trying to prove the Quadrangle Inequality. Instead, the naive \( O(N^2) \) solution can be coded up, (not the optimzied version discussed in this article), and if the values of \( opt(i) \) can be printed out. If \( opt(i) \) does not decrease for several small test inputs, the Quandrangle Inequality is <i>probably</i> satisfied.
 					</p>
+				</div>
+			</div>
+
+			<div id="implementation" class="section">
+				<div class="heading">Implementation Details</div>
+				<div class="subsection">
+					<div class="subheading">Avoiding Floating-Point Numbers</div>
+					
+					<p>
+						To avoid floating points in the previous code example, notice that \( p[i] \) must be greater than or equal to some fractional value for \( j' \) to be at least as good as \( j \), it's enough to check that \( p[i] \) is greater than the fraction, rounded up.
+					</p>
+
+					<p>
+						We take advantage of the property that
+						\[
+							\left\lceil \frac{a}{b} \right\rceil =
+							\begin{cases}
+								\left\lfloor \frac{a}{b} \right\rfloor, & \text{ if } b | a \\
+								\left\lfloor \frac{a}{b} \right\rfloor + 1, & \text{ otherwise}
+							\end{cases}
+						\]
+
+						Where \( b | a \) means "\( b \) divides \( a \)" or "\( a \) is divisible by \( b \)". Only the turning point function needs to be modified slightly:
+					</p>
+
+					<pre class="line-numbers"><code class="language-cpp">int ceildiv(lli a, lli b){
+	return a/b + ((a % b) &gt; 0);
+}
+
+int turn(int j, int k){
+	return ceildiv(
+		dp[j] - dp[k] + A*(p[j]*p[j] - p[k]*p[k]) + B*(p[k] - p[j]),
+		2 * A * (p[j] - p[k])
+	);
+}</code></pre>
+				</div>
+
+				<div class="subsection">
+					<div class="subheading">Two-Pointers Implemenation</div>
+					<p>
+						Since the only the back is pushed to, a built-in deque is not required. Only two pointers, one for the back and one for the front, and an array is required. The size of the implicit deque is given by \( \text{back} - \text{front} + 1 \). This method is slightly faster than using a built-in deque. We don't actually use pointers; two can use two integers that keep track of the array indexes.
+					</p>
+
+					<pre class="line-numbers"><code class="language-cpp">int front = 0, back = 0;
+
+for(int i = 1; i &lt;= N; i++){
+	while(back - front + 1 &gt;= 2 && turn(opt[front], opt[front + 1]) &lt;= psa[i])
+		++front;
+	int j = opt[front];
+	dp[i] = dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
+	while(back - front + 1 &gt;= 2 && turn(opt[back - 1], opt[back]) &gt;= turn(opt[back], i))
+		--back;
+	opt[++back] = i;
+}</code></pre>
 				</div>
 			</div>
 
 			<div id="appendix" class="section">
 				<div class="heading">Appendix</div>
-				<div class="content">
-					<p>
-						This technique also works if you replace \( \min \) with \( \max \).
-						<br>
-						It applies to recurrences of the form
-						\[
-							d_i = \max_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
-						\]
-						if and \( f(i, j) \) satisfies for all \( j \leq i \),
-						\[
-							f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
-						\]
-					</p>
-
-					<!-- TODO Restructure these blocks -->
-
-					<hr/>
-
-					<p>
-						Proof that if
-						\[
-							\forall j < i,
-							f(i, j) + f(i + 1, j + 1) \leq f(i + 1, j) + f(i, j + 1)
-						\]
-						<center>then</center>
-						\[
-							\forall j < j' < i < i', f(i, j) + f(i', j') \leq f(i', j) + f(i, j')
-						\]
-					</p>
-
-					<p>
-						<b>Lemma:</b> For all x, y and a > 0, \( f(x + 1, y + b) - f(x + 1, y) \leq f(x, y + b) - f(x, y) \)
-						Using the rearrangement \( f(i + 1, j + 1) - f(i + 1, j) \leq f(i, j + 1) - f(i, j) \), this can be proven by induction.
-					</p>
-
-					<p>
-						The base case, \( a = 1 \), directly follows by applying the Quadrangle Inequality for \( i = x, j = y \).
-					</p>
-
-					<p>
-						In the induction step, for \( b > 1 \), if
-						\[
-							f(x + 1, y + b) - f(x + 1, y) \leq f(x, y + b) - f(x, y)
-						\]
-						<center>then</center>
-						\[
-							f(x + 1, y + b + 1) - f(x + 1, y) \leq f(x, y + b + 1) - f(x, y)
-						\]
-						This directly follows by applying the Quadrangle Inequality for \( i = x, j = y + b \).
-					</p>
-
-					<p>
-						Now \( f(x + a, y + b) - f(x + a, y) \leq f(x, y + b) - f(x, y) \) can be proven.
-					</p>
-
-					<p>
-						In the base case, \( a = 1 \), which directly follows from the lemma.
-					</p>
-
-					<p>
-						In the induction step, for all \( a \gt 1\), if
-						In the induction step, for \( b \gt 1 \), if
-						\[
-							f(x + a, y + b) - f(x + a, y) \leq f(x, y + b) - f(x, y)
-						\]
-						<center>then</center>
-						\[
-							f(x + a + 1, y + b) - f(x + a + 1, y) \leq f(x, y + b) - f(x, y)
-						\]
-						This directly follows by applying the lemma, for \( x = x + a, y = y \). \( \square \)
-					</p>
+				<div class="subsection">
+					
 				</div>
 			</div>
 
@@ -602,7 +607,7 @@ int main(){
 
 			<div id="template" class="section">
 				<div class="heading">Template Heading</div>
-				<div class="content"></div>
+				<div class="subsection"></div>
 			</div>
 
 			-->
