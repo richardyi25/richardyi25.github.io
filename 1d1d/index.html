@@ -3,6 +3,7 @@
 <!-- also, make some sections less wordy -->
 <!-- fix the awful title tags for all sites -->
 <!-- does dp[] become d[]? -->
+<!-- replace lli with long long in code ? -->
 
 <!DOCTYPE html>
 
@@ -20,6 +21,8 @@
 		<div id="preamble">
 			\[
 				\DeclareMathOperator*{\argmax}{argmax}
+				\DeclareMathOperator*{\value}{value}
+				\DeclareMathOperator*{\opt}{opt}
 			\]
 		</div>
 
@@ -33,20 +36,23 @@
 				<li><a href="#intro">Introduction</a></li>
 				<li><a href="#prereq">Pre-Requisites</a></li>
 				<li><a href="#motivation">Motivation Problem</a></li>
+				<li><a href="#naive">Naive Solution</a></li>
 				<li><a href="#relation">General Form</a></li>
 				<li><a href="#quad">Quadrangle Inequality</a></li>
 				<li><a href="#mono">Monotonic Property</a></li>
+				<li><a href="#turning">Turning Point Property</a></li>
 				<li><a href="#o_nsquared">O(N²) Technique</a></li>
 				<li><a href="#o_nlogn">O(N log N) Technique</a></li>
 				<li><a href="#o_n">O(N) Technique</a></li>
-				<li><a href="#cht">Relation to the Convex Hull Trick</li>
 				<li><a href="#recognize">Recognizing the Quadrangle Inequality</li>
-				<li><a href="#appendix">Appendix</a></li>
+				<li><a href="#implement">Implementation Details</li>
+				<li><a href="#mini">Minimization Problems</li>
+				<li><a href="#reading">Additional Reading</a></li>
 			</ul>
 		</div>
 
 		<div id="main">
-			<div id="intro">
+			<div id="intro" class="section">
 				<div class="heading">Introduction</div>
 				<div class="subsection">
 					<p>
@@ -55,7 +61,7 @@
 				</div>
 			</div>
 
-			<div id="prereq">
+			<div id="prereq" class="section">
 				<div class="heading">Pre-Requisite Knowledge</div>
 				<div class="subsection">
 					This article will assume you know about the following:
@@ -104,7 +110,7 @@
 				</div>
 			</div>
 
-			<div id="naive">
+			<div id="naive" class="section">
 				<div class="heading">Naive Solution</div>
 				<div class="subsection">
 					<p>
@@ -118,17 +124,17 @@
 					<p>
 						The answer for \( dp[i] \) is then the maximum value over all choices of \( j \lt  i \), which can be written as:
 
-						\[ \begin{align}
-							dp[i] &= max_{j = 0}{i - 1} \left[ dp[j] + value(p[i] - p[j]) \right]
-						\end{align} \]
+						\[
+							dp[i] = \max_{j = 0}^{i - 1} \left[ dp[j] + \value(p[i] - p[j]) \right]
+						\]
 					</p>
 
 					<p>
-						Where \( value(x) \) = \( Ax^2 + Bx + C\). This can be expanded to
+						Where \( \value(x) \) = \( Ax^2 + Bx + C\). This can be expanded to
 
-						\[ \begin{align}
-							dp[i] &= max_{j = 0}{i - 1} \left[ dp[j] + A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \right]
-						\end{align} \]
+						\[
+							dp[i] = \max_{j = 0}^{i - 1} \left[ dp[j] + A(p[i] - p[j])^2 + B(p[i] - p[j]) + C \right]
+						\]
 					</p>
 
 					<p>
@@ -236,7 +242,7 @@ int main(){
 					</p>
 
 					<p>
-						We define \( opt(i) \) to be the value of \( j \) that maximizes \( dp[j] + f(i, j) \), that is, the value of \( j \) that is used to get the final value of \( dp[i] \).
+						We define \( \opt(i) \) to be the value of \( j \) that maximizes \( dp[j] + f(i, j) \), that is, the value of \( j \) that is used to get the final value of \( dp[i] \).
 					</p>
 
 					<p>
@@ -245,25 +251,25 @@ int main(){
 
 					<div class="block">
 						<div class="block-heading">
-							Definition of \( opt(i) \)
+							Definition of \( \opt(i) \)
 						</div>
 						\[
-							opt(i) = \argmax_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
+							\opt(i) = \argmax_{j = 1}^{i - 1} \left[ d_j + f(i, j) \right]
 						\]
 					</div>
 
 					<p>
-						The Monotonic Property states that as \( i \) increases, \( opt(i) \) does not decrease. This can be expressed in math notation in two equivalent ways:
+						The Monotonic Property states that as \( i \) increases, \( \opt(i) \) does not decrease. This can be expressed in math notation in two equivalent ways:
 					</p>
 
 					<div class="block">
 						<div class="block-heading">Monotonic Property</div>
 						\[
-							\forall i, opt(i) \leq opt(i + 1)
+							\forall i, \opt(i) \leq \opt(i + 1)
 						\]
 						<center>or<center>
 						\[
-						   \forall i \lt i', opt(i) \leq opt(i')
+							\forall i \lt i', \opt(i) \leq \opt(i')
 						\]
 					</div>
 				</div>
@@ -273,7 +279,7 @@ int main(){
 				<div class="heading">Turning Point Property</div>
 				<div class="subsection">
 					<p>
-						Conceptually, if we're trying to calculate \( dp[i] \), then all \( j \lt i \) are considered possible "candidates" for \( opt(i) \). For some \( j \) and \( j' \), \( j \) is considered to be a "better" candidate if it yields a larger value for \( dp[i] \), that is, \( dp[j] + f(i, j) \gt dp[j'] + f(i, j') \).
+						Conceptually, if we're trying to calculate \( dp[i] \), then all \( j \lt i \) are considered possible "candidates" for \( \opt(i) \). For some \( j \) and \( j' \), \( j \) is considered to be a "better" candidate if it yields a larger value for \( dp[i] \), that is, \( dp[j] + f(i, j) \gt dp[j'] + f(i, j') \).
 					</p>
 
 					<p>
@@ -312,13 +318,13 @@ int main(){
 				<div class="heading">The O(N²) Technique</div>
 				<div class="subsection">
 					<p>
-						Since we know that \( opt(i) \) doesn't decrease, we can keep track of \( opt(i - 1) \) in a variable and instead of calculating
+						Since we know that \( \opt(i) \) doesn't decrease, we can keep track of \( \opt(i - 1) \) in a variable and instead of calculating
 						\[
 							dp[i] = \max_{j = 0}^{i - 1} \left[ d_j + f(i, j) \right]
 						\]
 						we can make a small change and calculate
 						\[
-							dp[i] = \max_{j = opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
+							dp[i] = \max_{j = \opt(i - 1)}^{i - 1} \left[ d_j + f(i, j) \right]
 						\]
 						This solution is still \( O(N^2) \) and in the worst case, \( g(i) = 0 \) for all \( i \), but in practice, this will often
 						be fast enough to pass.
@@ -369,23 +375,23 @@ int main(){
 					</p>
 
 					<p>
-						The Turning Point Property includes the idea of "candidates" for \( opt(i) \). In this technique, we keep track of all "useful" candidates.
+						The Turning Point Property includes the idea of "candidates" for \( \opt(i) \). In this technique, we keep track of all "useful" candidates.
 					</p>
 
 					<p>
-						First, we explore a consequence of the Turning Point Property. Suppose we have three candidates for \( opt(i) \): \( a \), \( b \), and \( c \). If the turning point of \( a \) and \( b \) is greater than the turning point of \( b \) and \( c \), it means that \( b \) becomes better than \( a \) after \( c \) becomes better than \( b \). This means that \( b \) is "useless" since it will always be worse than either \( a \) or \( c \).
+						First, we explore a consequence of the Turning Point Property. Suppose we have three candidates for \( \opt(i) \): \( a \), \( b \), and \( c \). If the turning point of \( a \) and \( b \) is greater than the turning point of \( b \) and \( c \), it means that \( b \) becomes better than \( a \) after \( c \) becomes better than \( b \). This means that \( b \) is "useless" since it will always be worse than either \( a \) or \( c \).
 					</p>
 
 					<p>
-						Now, the algorithm emerges. We loop \( i \) from \( 1 \) to \( N \), maintaining a deque of candidates. We look at the front of deque, which contains the value of \( opt(i) \). Now that \( opt(i) \) is determined, \( dp[i] \) can be quickly calculated using the recurrence \( dp[i] = dp[j] + f(i, j) \) and setting \( j = opt(i) \). Now, \( i \) becomes a candidate for future iterations of \( i \), so it needs to be added to the back of the deque. As discussed in the previous paragraph, to make sure there are no useless candidates, the candidate at the back of the deque needs to be repeatedly removed until the turning point of second-from-back and back candidates of the deque is less than the turning point of the candidate at the back of the deque and \( i \).
+						Now, the algorithm emerges. We loop \( i \) from \( 1 \) to \( N \), maintaining a deque of candidates. We look at the front of deque, which contains the value of \( \opt(i) \). Now that \( \opt(i) \) is determined, \( dp[i] \) can be quickly calculated using the recurrence \( dp[i] = dp[j] + f(i, j) \) and setting \( j = \opt(i) \). Now, \( i \) becomes a candidate for future iterations of \( i \), so it needs to be added to the back of the deque. As discussed in the previous paragraph, to make sure there are no useless candidates, the candidate at the back of the deque needs to be repeatedly removed until the turning point of second-from-back and back candidates of the deque is less than the turning point of the candidate at the back of the deque and \( i \).
 					</p>
 
 					<p>
-						However, even after making this check, candidates can later become useless. Suppose we have two candidates for \( opt(i) \): \( a \) and \( b \). Neither of these have been determined to be useless by the criteria in the previous paragraph, but the turning point of \( a \) and \( b \) is at least \( i \). That means \( b \) is better than \( a \) as a candidate and will always be for all \( i' \gt i \), so \( a \) has become useless.
+						However, even after making this check, candidates can later become useless. Suppose we have two candidates for \( \opt(i) \): \( a \) and \( b \). Neither of these have been determined to be useless by the criteria in the previous paragraph, but the turning point of \( a \) and \( b \) is at least \( i \). That means \( b \) is better than \( a \) as a candidate and will always be for all \( i' \gt i \), so \( a \) has become useless.
 					</p>
 					
 					<p>
-						Consequently, \( opt(i) \) is not necessarily the front of the deque. To find \( opt(i) \), at the beginning of the each iteration, the front element of the deque should be removed until the turning point of the front element and second-from-front element is greater than \( i \).
+						Consequently, \( \opt(i) \) is not necessarily the front of the deque. To find \( \opt(i) \), at the beginning of the each iteration, the front element of the deque should be removed until the turning point of the front element and second-from-front element is greater than \( i \).
 					</p>
 
 					<p>
@@ -393,7 +399,7 @@ int main(){
 					</p>
 
 					<p>
-						A C++ implementation is given below:
+						A C++ implementation is given below. Note that in \( \text{turn}() \), \( j' \) is represented by the variable \( k \).
 					</p>
 
 					<pre class="line-numbers" data-line="14-22,31-39"><code class="language-cpp">#include &lt;stdio.h&gt;
@@ -537,12 +543,12 @@ int main(){
 					</p>
 
 					<p>
-						While it is possible to write out, expand, and factor terms by hand on paper, it might be more viable, especially during contest, to abandon trying to prove the Quadrangle Inequality. Instead, the naive \( O(N^2) \) solution can be coded up, (not the optimzied version discussed in this article), and if the values of \( opt(i) \) can be printed out. If \( opt(i) \) does not decrease for several small test inputs, the Quandrangle Inequality is <i>probably</i> satisfied.
+						While it is possible to write out, expand, and factor terms by hand on paper, it might be more viable, especially during contest, to abandon trying to prove the Quadrangle Inequality. Instead, the naive \( O(N^2) \) solution can be coded up, (not the optimzied version discussed in this article), and if the values of \( \opt(i) \) can be printed out. If \( \opt(i) \) does not decrease for several small test inputs, the Quandrangle Inequality is <i>probably</i> satisfied.
 					</p>
 				</div>
 			</div>
 
-			<div id="implementation" class="section">
+			<div id="implement" class="section">
 				<div class="heading">Implementation Details</div>
 				<div class="subsection">
 					<div class="subheading">Avoiding Floating-Point Numbers</div>
@@ -574,6 +580,9 @@ int turn(int j, int k){
 		2 * A * (p[j] - p[k])
 	);
 }</code></pre>
+					<p>
+						Since the modulo operator is expensive, this performs slightly worse than the floating-point version, but has the advantage of eliminating floating-point errors.
+					</p>
 				</div>
 
 				<div class="subsection">
@@ -582,24 +591,103 @@ int turn(int j, int k){
 						Since the only the back is pushed to, a built-in deque is not required. Only two pointers, one for the back and one for the front, and an array is required. The size of the implicit deque is given by \( \text{back} - \text{front} + 1 \). This method is slightly faster than using a built-in deque. We don't actually use pointers; two can use two integers that keep track of the array indexes.
 					</p>
 
-					<pre class="line-numbers"><code class="language-cpp">int front = 0, back = 0;
+					<pre class="line-numbers" data-line="9,24-32"><code class="language-cpp">#include &lt;stdio.h&gt;
+#include &lt;algorithm&gt;
+#include &lt;deque&gt;
+using namespace std;
+typedef long long int lli;
+const int MN = 1e6+1;
+const lli INF = 1e18;
+lli N, A, B, C, a[MN], p[MN], dp[MN];
+int opt[MN], front, back;
 
-for(int i = 1; i &lt;= N; i++){
-	while(back - front + 1 &gt;= 2 && turn(opt[front], opt[front + 1]) &lt;= psa[i])
-		++front;
-	int j = opt[front];
-	dp[i] = dp[j] + A*(psa[i] - psa[j])*(psa[i] - psa[j]) + B*(psa[i] - psa[j]) + C;
-	while(back - front + 1 &gt;= 2 && turn(opt[back - 1], opt[back]) &gt;= turn(opt[back], i))
-		--back;
-	opt[++back] = i;
+double turn(int j, int k){
+	return
+	(dp[j] - dp[k] + A*(p[j]*p[j] - p[k]*p[k]) + B*(p[k] - p[j])) /
+	(2.0 * A * (p[j] - p[k]));
+}
+
+int main(){
+	scanf("%lld %lld %lld %lld", &N, &A, &B, &C);
+	for(int i = 1; i &lt;= N; i++){
+		scanf("%lld", &a[i]);
+		p[i] = p[i - 1] + a[i];
+	}
+
+	for(int i = 1; i &lt;= N; i++){
+		while(back - front &gt;= 1 && turn(opt[front], opt[front + 1]) &lt;= p[i])
+			++front;
+		int j = opt[front];
+		dp[i] = dp[j] + A*(p[i] - p[j])*(p[i] - p[j]) + B*(p[i] - p[j]) + C;
+		while(back - front &gt;= 1 && turn(opt[back - 1], opt[back]) &gt;= turn(opt[back], i))
+			--back;
+		opt[++back] = i;
+	}
+
+	printf("%lld\n", dp[N]);
 }</code></pre>
+					<p>
+						Most built-in deques are very fast, so this implementation offers very little improvement in performance. However, it makes Line 29 easier to implement and less likely to mess up.
+					</p>
 				</div>
 			</div>
 
-			<div id="appendix" class="section">
-				<div class="heading">Appendix</div>
+			<div id="mini" class="section">
+				<div class="heading">Minimization Problems</div>
 				<div class="subsection">
-					
+					<p>
+						The general form of minimization 1D1D problems is, as expected,
+					</p>
+
+					\[
+						dp[i] = \min_{j = 0}^{i - 1} \left[ dp[j] + f(i, j) \right]
+					\]
+
+					<p>
+						The Quadrangle Inequality is the same except for the flipped sign:
+					</p>
+
+					\[
+						f(i, j) + f(i', j') \leq f(i', j) + f(i, j')
+					\]
+
+					<p>
+						The Monotonic Property is the exact same, and the Turning Point Property is the same, except a candidate is "better" for \( opt(i) \) if it yields a lower value for \( dp[i] \) since we wish to minimize \( dp[i] \).
+					</p>
+
+					<p>
+						In the \( O(N \log N) \) implementation, only the condition in the binary search needs to be changed. The \( O(N) \) algorithm is also the same, except the inequality for the turning point is flipped.
+					</p>
+				</div>
+			</div>
+
+			<div id="reading" class="section">
+				<div class="heading">Additional Reading</div>
+				<div class="subsection">
+					<p>
+						This marks the end of main article. Thank you for reading!
+					</p>
+
+					<p>
+						You can read a proof that the Quadrangle Inequality implies the Monotonic Property and the Turning Point Property <a href="proof.html">here</a>.
+					</p>
+
+					<p>
+						This article is heavily based off of two sources:
+					</p>
+
+					<ul>
+						<li>
+							<a href="https://sites.google.com/site/ubcprogrammingteam/news/1d1ddynamicprogrammingoptimization-parti">This blog post</a> by the University of British Columbia ACM-ICPC Team
+						</li>
+						<li>
+							<a href="https://codeforces.com/blog/entry/8219?#comment-139241">This Codeforces comment</a> by WJMZBMR
+						</li>
+					</ul>
+
+					<p>
+						If you prefer to read formal papers, you can also check out the ones mentioned at the end of <a href="https://codeforces.com/blog/entry/8219">this Codeforces blog</a>.
+					</p>
 				</div>
 			</div>
 

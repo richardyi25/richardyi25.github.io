@@ -73,6 +73,7 @@ Formally, again, we can prove this by proving the contrapositive: if the Turning
 Recall that the Quadrangle Inequality states that \( \forall i \lt i' \lt j \lt j', f(i, j) + f(i', j') \geq f(i', j) + f(i, j') \), so it is not satisfied if \( \exists i \lt i' \lt j \lt j', f(i, j) + f(i', j') \lt f(i', j) + f(i, j') \)
 
 Previously, we have established that the Turning Point Property is not satisfied if
+
 \[
 	\exists j \lt j' \lt i \lt i':
 	\\

@@ -225,14 +225,95 @@ Recognizing the Quadrangle Inequality
 
 <!-- section is fine except for some wording -->
 
-Appendix
-========
+Variations
+==========
 
-<!-- TODO: discuss the differences between the min and max versions -->
+For this section, we'll use a different motivation problem: <a href="https://dmoj.ca/problem/hci16police">HCI Contest - Cheapest Operation Ever</a>
 
-<!-- use Cheapest Operation Ever as a model problem for the min version -->
+To summarize the problem, there are \( N \) criminals in a straight line with integer coordinates from 1 to \( 10^9 \) (presumably). The \( i \)-th criminal stands at point \( a[i] \), which are distinct and in sorted order. A police officer can be dispatched at any point, and be instructed to travel to another point. The police officer will capture all criminals they encounter along the way, including their starting and ending point. The cost of dispatching an officer is some given constant \( H \), plus the square of the distance it travels. Find the minimum cost of capturing all criminals.
 
-<!-- drop the proof between two forms of QI and state it as a given earlier -->
+Similarly to with Commando, we can set up \( dp[i] \) to be the minimum cost of capturing the first \( i \) criminals. We can then choose some \( j \) and dispatch a police officer to travel from \( a[j + 1] \) to \( a[i] \) and capture the criminals along the way. We use \( dp[j] \) to determine minimum cost to capture the first \( j \) criminals. Therefore,
 
-<!-- link to proofs -->
+\[
+	dp[i] = \min{j = 0}{i - 1} \left[ dp[j] + (a[i] - a[j + 1])^2 \right]
+\]
+
+This can also naively be implemented in \( O(N^2) \) time, and all techniques discussed in the article are applicable.
+
+Minimization Problems
+----------------------
+
+The general form of minimization 1D1D problems is, as expected,
+
+\[
+	dp[i] = \min{j = 0}{i - 1} \left[ dp[j] + f(i, j) \right]
+\]
+
+The Quadrangle Inequality is the same except for the flipped sign:
+
+<!-- block??? -->
+
+\[
+	f(i, j) + f(i', j') \leq f(i', j) + f(i, j')
+\]
+
+The Monotonic Property is the exact same, and the Turning Point Property is the same, except a candidate is "better" for \( opt(i) \) if it yields a lower value for \( dp[i] \) since we wish to minimize \( dp[i] \).
+
+In the \( O(N \log N) \) implementation, only the condition in the binary search needs to be changed.
+
+<!-- add code with appropriate highlight -->
+
+Reversed Turning Point
+----------------------
+
+While rearranging the turning point formula for the \( O(N) \) solution, we were lucky that we ended up with \( g(i) \geq h(j, j') \) where \( g(i) \) is an increasing function in terms of \( i \), and \( h(j, j') \) is any function of \( j \) and \( j' \).
+
+To see what else could happen, let's rearrange the turning point formula for Cheapest Operation Ever.
+
+For some \( j \lt j' \):
+\[ \require{cancel} \begin{align}
+	dp[j] + f(i, j) & \leq dp[j'] + f(i, j') \\
+	dp[j] + (a[i] - a[j + 1])^2 & \leq dp[j'] + (a[i] - a[j' + 1])^2 \\
+	dp[j] + a[i]^2 - 2a[i]a[j + 1] + a[j + 1]^2 & \leq dp[j'] + a[i]^2 - 2a[i]a[j' + 1] + a[j' + 1]^2 \\
+	dp[j] + \cancela{[i]^2} - 2a[i]a[j + 1] + a[j + 1]^2 & & \leq dp[j'] + \cancel{a[i]^2} - 2a[i]a[j' + 1] + a[j' + 1]^2 \\
+	dp[j] - dp[j'] + a[j + 1]^2 - a[j' + 1]^2 & \leq 2a[i](a[j + 1] - a[j' + 1])
+\end{align} \]
+
+Since \( a[i] \) is in sorted order and \( j \lt j' \), \( a[j + 1] - a[j' + 1] \) must be negative, so the inequality sign must be flipped when bringing it to the other side.
+
+\[ \begin{align}
+	dp[j] - dp[j'] + a[j + 1]^2 - a[j' + 1]^2 & \leq a[i] \\
+	\frac{dp[j] - dp[j'] + a[j + 1]^2 - a[j' + 1]^2}{2(a[j + 1] - a[j' + 1])} \geq a[i]
+\end{align} \]
+
+Unlike with Commando, now, we can see that \( j' \) is at least as good as \( j \) when \( a[i] \) is at most some function of \( j \) and \( j' \). However, this is no longer useful since as we increase loop through \( i \), \( a[i] \) increases, at some turning point, for all \( j \lt j' \), \( j' \) becomes worse than \( j \) instead of better, meaning neither the Turning Point Property nor the Monotonic Property is present when using this turning point function.
+
+<!-- voice? -->
+The fix is thankfully very simple. We set \( j \gt j' \) instead of \( j \lt j' \). Now, \( a[j + 1] - a[j' + 1] \) is positive. Going back one step in the rearrangement:
+
+\[ \begin{align}
+	dp[j] - dp[j'] + a[j + 1]^2 - a[j' + 1]^2 & \leq 2a[i](a[j + 1] - a[j' + 1])
+	\frac{dp[j] - dp[j'] + a[j + 1]^2 - a[j' + 1]^2}{2(a[j + 1] - a[j' + 1])} \leq a[i]
+\end{align} \]
+
+Now, to adjust for this in the code, we just need to pass in the variables into \( \text{turn}() \) backwards, or just declare the function with the parameters backwards.
+
+Below is an example implementation. Recall again that \( k \) is used in place of \( j' \) in the code.
+
+<!-- code with appropriate part highlighted -->
+
+Additional Reading
+==================
+
+This marks the end of main article. Thank you for reading!
+
+You can read a proof that the Quadrangle Inequality implies the Monotonic Property and the Turning Point Property <a href"proof.html">here</a>.
+
+This article is heavily based off of two sources:
+
+ - <a href="https://sites.google.com/site/ubcprogrammingteam/news/1d1ddynamicprogrammingoptimization-parti">This blog post</a> by the University of British Columbia ACM-ICPC Team
+ - <a href="https://codeforces.com/blog/entry/8219?#comment-139241">This Codeforces comment</a> by WJMZBMR
+
+If you prefer to read formal papers, you can also check out the ones mentioned at the end of <a href="https://codeforces.com/blog/entry/8219">this Codeforces blog</a>.
+
 <!-- link to example problems -->
