@@ -1,0 +1,26 @@
+/* Center canvas */
+canvas{
+	display: block;
+	margin: 0px auto;
+}
+
+#info{
+	font: 20px Verdana, Sans;
+}
+
+#main{
+	font: 40px Verdana, Sans;
+	text-align: center;
+}
+
+a>.block{
+	padding: 40px;
+	margin: 20px;
+	display: inline-block;
+	background-color: beige;
+	color: blue;
+}
+
+a{
+	text-decoration: none;
+}

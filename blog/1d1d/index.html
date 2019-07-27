@@ -13,6 +13,14 @@
 		<title>1D1D DP: A Dynamic Programming Optimization</title>
 		<link rel="stylesheet" href="prism.css">
 		<link rel="stylesheet" href="style.css">
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				tex2jax: {
+					inlineMath: [['$','$'], ["\\(","\\)"]],
+					displayMath: [['$$','$$'], ["\\[","\\]"]],
+				}
+			});
+		</script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
 		<script src="prism.js"></script>
 	</head>
@@ -214,11 +222,7 @@ int main(){
 					<div class="block">
 						<div class="block-heading">Quadrangle Inequality</div>
 						<!-- change the order of f(i', j) and f(i, j') as needed -->
-						\[
-							\forall j \lt i,
-							f(i, j) + f(i + 1, j + 1) \geq f(i + 1, j) + f(i, j + 1)
-						\]
-						<center>or</center>
+						\
 						\[
 							\forall j \lt j' \lt i \lt i',
 							f(i, j) + f(i', j') \geq f(i', j) + f(i, j') 
