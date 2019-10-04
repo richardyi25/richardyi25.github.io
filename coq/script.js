@@ -47,6 +47,7 @@ function convert(){
 		var keyword = line.split(' ', 1)[0];
 		if(keyword == "Definition"){
 			var parts = line.split(':=');
+			if(parts.length < 2) continue;
 			var left = parts[0].split(' ')[1].trim();
 			var right = parts[1].trim();
 			definitions[right] = left;
