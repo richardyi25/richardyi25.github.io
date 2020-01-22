@@ -1,0 +1,5 @@
+/* Center canvas */
+canvas{
+	display: block;
+	margin: 0px auto;
+}

@@ -12,12 +12,35 @@
 	</head>
 
 	<body>
-		<div id="info">
-			Press T to toggle auto/manual mode <br/>
-			Press the Up/Down arrow keys to change speed <br/>
-			Press Press the Left/Right arrow keys to step forward/back in manual mode
-		</div>
 		<!-- Currently no support for other dimensions -->
+		<div style="font-weight:bold;font-size:25px;font-family:Verdana,Sans;">
+			Breadth-First Search
+		</div>
+
 		<canvas width="1200" height="675"></canvas>
+		<div id="info">
+			<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
+				Controls
+			</div>
+			<ul>
+				<li>Press T to toggle auto/manual mode</li>
+				<li>Press the Up/Down arrow keys to change speed</li>
+				<li>Press Press the Left/Right arrow keys to step forward/back in manual mode</li>
+			</ul>
+			<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
+				Breadth-First Search Explanation
+			</div>
+			<p>
+				In a breadth-first search, we pick a node to initially visit into a queue and mark
+				that it has been visited.
+				We then repeatedly remove a node from the queue, and add its unvisited adjacent
+				nodes into the queue, marking them visited. This loops until the queue is empty.
+			</p>
+			<p>
+				Due to the first-in, first-out nature of the queue, nodes are visited in order of
+				shortest distance from the initial node. The shortest distance property only holds
+				for unweighted graphs.
+			</p>
+		</div>
 	</body>
 </html>

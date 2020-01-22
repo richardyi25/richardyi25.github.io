@@ -12,12 +12,35 @@
 	</head>
 
 	<body>
-		<div id="info">
-			Press T to toggle auto/manual mode <br/>
-			Press the Up/Down arrow keys to change speed <br/>
-			Press Press the Left/Right arrow keys to step forward/back in manual mode
-		</div>
 		<!-- Currently no support for other dimensions -->
+		<div style="font-weight:bold;font-size:25px;font-family:Verdana,Sans;">
+			Kruskal's Algorithm
+		</div>
+
 		<canvas width="1200" height="675"></canvas>
+		<div id="info">
+			<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
+				Controls
+			</div>
+			<ul>
+				<li>Press T to toggle auto/manual mode</li>
+				<li>Press the Up/Down arrow keys to change speed</li>
+				<li>Press Press the Left/Right arrow keys to step forward/back in manual mode</li>
+			</ul>
+			<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
+				Kruskal's Algorithm Explanation
+			</div>
+			<p>
+				The goal of Kruskal's Algorithm is to find a minimum spanning tree of a weighted
+				graph, i.e. a subset of the graph edges that forms a tree of the nodes and whose
+				sum is minimized.
+			</p>
+			<p>
+				We attempt to add each edge into the tree, from least to greatest weight.
+				If we cannot add an edge (i.e. it would create a cycle if added, disqualifying
+				it as a tree), we skip over it.
+				The algorithm finishes when a tree is formed.
+			</p>
+		</div>
 	</body>
 </html>

@@ -14,7 +14,7 @@
 	<body>
 		<!-- Currently no support for other dimensions -->
 		<div style="font-weight:bold;font-size:25px;font-family:Verdana,Sans;">
-			Depth-First Search
+			Centroid Decomposition
 		</div>
 
 		<canvas width="1200" height="675"></canvas>
@@ -28,19 +28,26 @@
 				<li>Press Press the Left/Right arrow keys to step forward/back in manual mode</li>
 			</ul>
 			<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
-				Depth-First Search Explanation
+				Centroid Decomposition Explanation
 			</div>
 			<p>
-				In a depth-first search, we pick an intial node and apply the recursive function
-				<ul>
-					<li>Mark it as visited</li>
-					<li>For each unvisited adjacent node, apply the recursive function</li>
-				</ul>
+				Centroid decomposition is an advanced divide-and-conquer technique on trees.
+				The centroid of the tree is found and marked as "removed", paritioning the tree into 
+				subtrees with
+				a size of half of the tree or fewer. This process is repeated until all nodes
+				are marked as removed.
 			</p>
 			<p>
-				Due to the nature of the recursive stack, the recursion will attempt to go as
-				deep as possible before unwinding.
+				We note that the depth of recursion is O(log N) so there are O(N log N) paths from a
+				centroid to all of the other nodes in its subtree right before it was removed,
+				and that any of the O(N²) original paths in the tree can be formed by concatenting 
+				two of the O(N log N) paths from the cenroid.
+			</p>
+			<p>
+				This is of great convenience for problems querying non-trivial information on all paths of a tree.
 			</p>
 		</div>
 	</body>
 </html>
+
+

@@ -18,7 +18,10 @@ a>.block{
 	margin: 20px;
 	display: inline-block;
 	background-color: beige;
+	border-radius: 20px;
 	color: blue;
+	font-size: 30px;
+	border: 1px solid #D5D5BC;
 }
 
 a{
