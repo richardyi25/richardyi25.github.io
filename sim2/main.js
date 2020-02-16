@@ -1,13 +1,13 @@
 //var state = makeAll(["K", "x", "y"]);
 //var state = makeAll(["S", ["K", ["S", "I"]], "K", "x", "y"]);
-var state = makeAll(["S", ["B", "B", "S"], ["K", "K"], "x", "y", "z"]);
+//var state = makeAll(["S", ["B", "B", "S"], ["K", "K"], "x", "y", "z"]);
 //var state = makeAll(["S", "S", ["S", "K"], "x", "y"]);
-//var state = makeAll(["S", "L", "L", "f"]);
+var state = makeAll(["S", "L", "L", "f"]);
 // ["C", "B", ["W", "I"], "x", "y"]
-var offset, height = 4;
+var offset, height = 15;
 
-const combWidth = 200, brWidth = 50, adjWidth = 50, barWidth = 50;
-const backHeight = 50, combHeight = 200, barHeight = 15;
+const combWidth = 150, brWidth = 50, adjWidth = 50, curWidth = 50, barWidth = 50;
+const backHeight = 25, combHeight = 150, barHeight = 15;
 
 function back(depth, width){
 	var c = $("canvas");
@@ -144,7 +144,7 @@ function render(){
 
 	c.drawText({
 		fillStyle: "black",
-		x: 100, y: 700,
+		x: 100, y: 900,
 		fontSize: 50,
 		fontFamily: "Verdana, Sans",
 		text: "Press Enter to step",
