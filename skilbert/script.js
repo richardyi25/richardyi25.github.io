@@ -1,20 +1,36 @@
-// TODO switch to objects?
+/*
+function Theorem(name, body){
+	this.name = name;
+	this.body = body;
+	this.getVarsHelper = function(thm){
+		var res = {};
+		for(var i = 0; i < thm.length; i++){
+			if(Array.isArray(thm[i])){
+				var get = getVarsHelper(thm[i]);
+				for(var key in get)
+					res[key] = true;
+			}
+			else res[thm[i]] = true;
+		}
+		return res;
+	}
+	this.getVars = function(thm){
+		return Object.keys(getVarsHelper(thm)).sort();
+	}
+	this.vars = this.getVars(body);
+}
+*/
+
 var theorems = [
 	["S", [["a", "b", "c"], [["a", "b"], ["a", "c"]]], ["a", "b", "c"]],
 	["K", ["a", ["b", "a"]], ["a", "b"]]
 ]; // Current list of theorems
 var mode = "normal";
 var thm1, thm2, thm3; // Working theorems (like registers)
-var sub1 = {}, sub2 = {};
 
-/*
-TODO Document grammar in another page
-Modes:
-Normal mode   - Waiting for Apply, Delete, Rename, Specific
-Apply mode    - Waiting for Sub, Done, Quit
-Specific mode - Waiting for Sub, Done, Quit
-Confrim mode  - Waiting for yes/no
-*/
+var sub1 = {}, sub2 = {};
+var log = [];
+var arrowPtr; // What the current command is displaying, changed when arrow keys or enter is pressed
 
 /*
 We judge a function's purity extensionally, that is, if it doesn't modify arguments or produce
@@ -73,6 +89,10 @@ function checkThm(thm){
 }
 
 function checkNewThm(thm){
+	if(thm.length > 32){
+		error("Theorem name too long");
+		return false;
+	}
 	if(findThm(thm)){
 		error("Theorem " + thm + " is already taken");
 		return false;
@@ -95,6 +115,14 @@ function checkVar(varlist, varname){
 
 	error("Variable " + varname + " not found");
 	return false;
+}
+
+function checkEmpty(rest){
+	if(rest.length == 0){
+		error("Unexpected end of line");
+		return false;
+	}
+	return true;
 }
 
 function checkEOL(rest){
@@ -237,23 +265,6 @@ function stringifyThm(thm){
 	return result;
 }
 
-function getVarsHelper(thm){
-	var res = {};
-	for(var i = 0; i < thm.length; i++){
-		if(Array.isArray(thm[i])){
-			var get = getVarsHelper(thm[i]);
-			for(var key in get)
-				res[key] = true;
-		}
-		else res[thm[i]] = true;
-	}
-	return res;
-}
-
-function getVars(thm){
-	return Object.keys(getVarsHelper(thm)).sort();
-}
-
 function subHelp(t, sub){
 	var thm = Array.from(t);
 	for(var i = 0; i < thm.length; i++){
@@ -271,7 +282,6 @@ function subThm(thm, sub){
 }
 
 function cmpThm(thm1, thm2){
-	console.log(stringifyThm(thm1) + "   " + stringifyThm(thm2));
 	if(thm1.length != thm2.length) return false;
 	for(var i = 0; i < thm1.length; i++){
 		if(Array.isArray(thm1[i]) && Array.isArray(thm2[i])){
@@ -284,60 +294,80 @@ function cmpThm(thm1, thm2){
 	return true;
 }
 
+function getVarsHelper(thm){
+	var res = {};
+	for(var i = 0; i < thm.length; i++){
+		if(Array.isArray(thm[i])){
+			var get = getVarsHelper(thm[i]);
+			for(var key in get)
+				res[key] = true;
+		}
+		else res[thm[i]] = true;
+	}
+	return res;
+}
+
+function getVars(thm){
+	return Object.keys(getVarsHelper(thm)).sort();
+}
+
+function saveProgress(){
+	document.cookie = "progress=" + log.join("|");
+}
+
+function padRight(str, len){
+	for(var i = str.length; i < len; i++)
+		str += " ";
+	return str;
+}
+
 function render(){
-	// TODO don't write HTML in rendering, use proper functions to construct
-	// tags instead
 	$("#mode").text(mode[0].toUpperCase() + mode.substr(1, mode.length) + " Mode");
 	$("#thms").empty();
+
+	var maxlen = 0;
+	for(var i = 0; i < theorems.length; i++)
+		maxlen = Math.max(maxlen, theorems[i][0].length);
+
 	for(var i = 0; i < theorems.length; i++){
 		var thm = theorems[i];
-		$("#thms").append("<div class=\"thm\"><span class=\"thm-name\">"
-			+ thm[0]
-			+ ":</span><span class=\"thm-body\">"
-			+ stringifyThm(thm[1]) + "</span></div>"
+		$("#thms").append("<div class=\"thm\">"
+			+ padRight(thm[0] + ":", maxlen + 2) + stringifyThm(binarizeThm(thm[1])) + "</div>"
 		);
 	}
 
-	// TODO make better
 	if(mode == "apply"){
-		var s1 = "<div>" 
-		$("#apply").html("<div>" + stringifyThm(binarizeThm(subThm(thm1[1], sub1))) + "</div><div>" +
-			stringifyThm(binarizeThm(subThm(thm2[1], sub2))) + "</div>");
+		var t1 = thm1[0], t2 = thm2[0];
+		if(t1 == t2) t2 += "_";
+		maxlen = Math.max(t1.length, t2.length);
+		$("#apply").html("<div class=\"thm\">" + padRight(t1 + ":", maxlen + 2) +
+			stringifyThm(binarizeThm(subThm(thm1[1], sub1))) + "</div><div class = \"thm\">" +
+			padRight(t2 + ":", maxlen + 2) + stringifyThm(binarizeThm(subThm(thm2[1], sub2))) + "</div>");
+	}
+	else if(mode == "specific"){
+		$("#apply").html("<div class=\"thm\">" + thm1[0] + ":  " + stringifyThm(binarizeThm(subThm(thm1[1], sub1))) + "</div>");
 	}
 	else $("#apply").empty();
 }
 
-function parse(e){
-	if(e.which != 13) return;
-	$("#error").empty();
-	var line = $("#input").val();
-	if(line == "") return;
-	$("#input").val("");
+function parse(line, logLines){
 	var tokens = tokenize(line);
-	var first = tokens[0].toLowerCase();
+	var firstOriginal = tokens[0];
+	var first = firstOriginal.toLowerCase();
 	var rest = tokens.slice(1);
 
 	if(mode == "normal"){
 		if(first == "apply" || first == "a"){
-			if(rest.length == 0){
-				error("Unexpected end of line when looking for first theorem name");
-				return;
-			}
+			if(!checkEmpty(rest)) return;
 			var t1 = rest[0];
 			if(!checkThm(t1)) return;
 			rest = optional(rest.slice(1), "to");
-			if(rest.length == 0){
-				error("Unexpected end of line when looking for second theorem name");
-				return;
-			}
+			if(!checkEmpty(rest)) return;
 			var t2 = rest[0];
 			if(!checkThm(t2)) return;
 			rest = optional(rest.slice(1), "as");
-			if(rest.length == 0){
-				error("Unexpected end of line when looking for new theorem name");
-				return;
-			}
-			if(!checkEOL(rest)) return;
+			if(!checkEmpty(rest)) return;
+			//if(!checkEOL(rest)) return;
 			var t3 = rest[0];
 			if(!checkNewThm(t3)) return;
 			mode = "apply";
@@ -349,7 +379,7 @@ function parse(e){
 		}
 		else if(first == "delete" || first == "d"){
 			if(!checkThm(rest[0])) return;
-			if(!checkEOL(rest)) return;
+			//if(!checkEOL(rest)) return;
 			thm1 = rest[0];
 			mode = "confirm";
 		}
@@ -359,37 +389,48 @@ function parse(e){
 			rest = optional(rest.splice(1), "to");
 			var t2 = rest[0];
 			if(!checkNewThm(t2)) return;
-			if(!checkEOL(rest)) return;
+			//if(!checkEOL(rest)) return;
 			thm1 = getThm(t1);
 			thm2 = t2;
+			thm1[0] = t2;
 		}
 		else if(first == "specific" || first == "s"){
 			if(!checkThm(rest[0])) return;
-			if(!checkEOL(rest)) return;
-			mode = "specific";
 			thm1 = getThm(rest[0]);
+			rest = optional(rest.slice(1), "as");
+			if(!checkEmpty(rest)) return;
+			if(!checkNewThm(rest[0])) return;
+			mode = "specific";
+			thm2 = rest[0];
+			sub1 = {};
 		}
 		else{
-			error(first + " is not a command");
+			error(firstOriginal + " is not a command");
 			return;
 		}
 	}
-	// TODO do check EOL here
 	else if(mode == "apply"){
 		if(first == "sub" || first == "s"){
+			var t1 = thm1[0], t2 = thm2[0];
+			if(t1 == t2) t2 += "_";
 			rest = optional(rest, "in");
 			var id = rest[0];
-			if(id != "1" && id != "2"){
-				error("Invalid theorem " + id + ". Please enter 1 or 2");
+			if(id != "1" && id != "2" && id != t1 && id != t2){
+				error("Invalid theorem " + id + ". Please enter 1, 2, or a theorem name");
 				return;
 			}
-			var thm = id == "1" ? thm1 : thm2;
+			var thm;
+			if(id == "1" || id == "2") thm = id == "1" ? thm1 : thm2;
+			else thm = id == t1 ? thm1 : thm2;
 			var varname = rest[1];
 			if(!checkVar(thm[2], varname)) return;
+			rest = optional(rest.slice(1), "with");
 			var exp = rest.slice(2).join(" ");
 			var newThm = parseThm(exp);
 			if(!newThm) return;
-			var sub = id == "1" ? sub1 : sub2;
+			var sub;
+			if(id == "1" || id == "2") sub = id == "1" ? sub1 : sub2;
+			else sub = id == t1 ? sub1 : sub2;
 			sub[varname] = newThm;
 		}
 		else if(first == "done" || first == "d"){
@@ -414,14 +455,40 @@ function parse(e){
 			mode = "normal";
 		}
 		else{
-			error(first + " is not a command");
+			error(firstOriginal + " is not a command");
+			return;
+		}
+	}
+	else if (mode == "specific"){
+		if(first == "sub" || first == "s"){
+			var varname = rest[0];
+			rest = optional(rest.slice(1), "with");
+			if(!checkVar(thm1[2], varname)) return;
+			var exp = rest.join(" ");
+			var newThm = parseThm(exp);
+			if(!newThm) return;
+			sub1[varname] = newThm;
+		}
+		else if(first == "done" || first == "d"){
+			var t1 = subThm(thm1[1], sub1);
+			theorems.push([thm2, t1, getVars(t1)]);
+			mode = "normal";
+		}
+		else if(first == "quit" || first == "q"){
+			mode = "normal"; // reset variables?
+		}
+		else{
+			error(firstOriginal + " is not a command");
 			return;
 		}
 	}
 	else if(mode == "confirm"){
-		if(!checkEOL(tokens)) return;
+		//if(!checkEOL(tokens)) return;
 		if(first == "yes" || first == "y"){
-			if(!deleteThm(thm1)) error("Cannot delete axiom");
+			if(!deleteThm(thm1)){
+				error("Cannot delete axiom");
+				return;
+			}
 			mode = "normal";
 		}
 		else if(first == "no" || first == "n"){
@@ -429,18 +496,78 @@ function parse(e){
 		}
 		else{
 			error("Please enter yes/no");
+			return;
 		}
 	}
 	render();
+	if(logLines) log.push(line);
+	saveProgress();
+	return true;
 }
 
-function clear(e){
-	if(e.which == 13) $("#input").val("");
+
+function loadProgress(){
+	// This breaks if there is a cookie called "progress" from other sites on this domain
+	var cookies = document.cookie.split("; "), progress;
+	for(var i = 0; i < cookies.length; i++){
+		var cookie = cookies[i];
+		if(cookie.indexOf("=") == -1) continue;
+		var tokens = cookie.split("=");
+		if(tokens[0] == "progress") progress = tokens[1];
+	}
+
+	if(!progress) return;
+	var tmp = progress.split("|");
+	log = Array.from(tmp);
+	for(var i = 0; i < log.length; i++){
+		if(!parse(log[i], false))
+			console.log(log[i]);
+	}
+	arrowPtr = log.length;
+}
+
+function loadCommand(){
+	if(arrowPtr >= log.length){
+		arrowPtr = log.length;
+		$("#input").val("");
+		return;
+	}
+	if(arrowPtr < 0){
+		arrowPtr = 0;
+	}
+	$("#input").val(log[arrowPtr]);
 }
 
 // Event Binding
 $(document).ready(function(){
-	$("#input").keydown(parse);
-	$("#input").keyup(clear);
+	$(document).keydown(function(e){
+		if(e.which == 13){ // enter
+			arrowPtr = log.length;
+			e.preventDefault();
+			$("#error").empty();
+			var line = $("#input").val();
+			if(line == "") return;
+			if(parse(line, true)){
+				$("#input").val("");
+				$("#input").css("background-color", "");
+			}
+			else{
+				$("#input").css("background-color", "#FFAAAA");
+			}
+			arrowPtr = log.length;
+		}
+		else if(e.which == 38){ // up arrow
+			--arrowPtr;
+			loadCommand();
+		}
+		else if(e.which == 40){ // down arrow
+			++arrowPtr;
+			loadCommand();
+		}
+		else
+			$("#input")[0].focus();
+	});
+
 	render();
+	loadProgress();
 });
