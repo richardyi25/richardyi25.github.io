@@ -1,0 +1,153 @@
+// TODO
+#site-title A Gentle Dive into FFT
+#title A Gentle Dive into FFT
+#latex-preamble
+$$
+\newcommand{\om}{\omega}
+$$
+#end latex-preamble
+#toc
+
+#main
+
+#section Introduction
+In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(N^2)$ to $O( N \log N)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
+#end section
+
+#section Multiplying Polynomials
+First, let's recap what a polynomial is:
+#block Defintion
+A polynomial $f(x)$ of degree $n$ is defined as $$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
+where $a_0, \dots, a_n$ are numbers.
+#end block
+It's common to include the restriction $a_n \neq 0$, but for later convenience, we won't introduce this restriction.
+
+We can multiply polynomials to get a new polynomial. Suppose $f(x) = a_0 + a_1 + \dots + a_nx^n$ and $g(x) = b_0 + b_1 + \dots + b_nx^n$ are both polynomials of degree $n$. Let $h(x) = f(x)g(x)$ be their product. We can calculate $h(x)$ by distributing and collecting the terms:
+$$\begin{align} h(x) &= f(x)g(x)\\&=(a_0 + a_1x + \dots + a_nx^n)(b_0 + b_1x + \dots + b_nx^n)\\&= \sum_{i = 0}^n\sum_{j = 0}^n a_ib_jx^{i+j} \end{align}$$
+
+The product $h(x) = f(x)g(x) = c_0 + c_1x + \dots + c_{2n}x^{2n}$ is a polynomial of degree $2n$. We can find the $k$-th coefficient $c_k$ for all $0 \leq k \leq 2n$ by adding all $a_ib_j$ such that $i + j = k$. To do this, we loop thourgh all $i$ from 0 to $k$ inclusive and set $j = k - i$. 
+
+#block Theorem
+If $$\begin{align}f(x) &= a_0 + a_1x + \dots + a_nx^n\\g(x) &= b_0 + b_1x + \dots + a_nx^n \\h(x) = f(x)g(x) &= c_0 + c_1x + \dots + c_{2n}x^{2n}\end{align}$$then for all $0 \leq k \leq 2n$,
+$$c_k = \sum_{i = 0}^k a_ib_{k - i}$$
+#end block
+
+Note that this formula takes $O(n^2)$ time to compute $c_k$ for all $0 \leq k \leq 2n$, despite it only being $O(n)$ space of information. There seems to be a neat structure to the computation, so there's probably room for improvement by reusing calculations. This is where the Fast Fourier Transform comes in.
+#end section
+
+#section Sampling and Interpolating
+A polynomial $f(x) = a_0 + \dots + a_nx^n$ can be represented by only its coefficients $a_0, \dots, a_n$. However, if we know its value at enough points, we can also determine the coefficients of the polynomial.
+#block Theorem
+Let $f(x) = a_0 + \dots + a_nx^n$ be a polynomial with degree $n$ whose coefficients $a_0, \dots, a_n$ are unknown. For any choice of distinct numbers $s_0, \dots, s_n$, if we know $f(s_0), \dots, f(s_n)$, then we can uniquely determine $a_0, \dots, a_n$.
+#end block
+Let's call the choice of distinct numbers $s_0, \dots, s_n$ <i>sampling points</i> and the values of $f(s_0), \dots f(s_n)$ <i>samples</i>. Note that while the samples uniquely determine the coefficients, the samples themselves aren't unique because any choice of distinct sampling points will work.
+
+We call the process of calculating samples from the polynomial in coefficient form <i>sampling</i> and the process of determining the coefficients from samples <i>interpolating</i>.
+#end section
+
+#section Speedup Overview
+For the sake of later convenience, we'll talk about multiplying polynomials of degree $n - 1$ from now on.
+
+Let $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ and $g(x) = b_0 + \dots + b_{n-1}x^{n-1}$ be polynomials of degree $n - 1$. Instead of multiplying them directly, we'll first sample both $f(x)$ and $g(x)$ at sample points $s_0, \dots, s_{2n - 1}$, calculating $f(s_0), \dots, f(s_{2n - 1})$ as well as $g(s_0), \dots, g(s_{2n - 1})$.
+
+Then we'll pointwise multiply the samples, calculating $f(s_0)g(s_0), \dots f(s_{2n - 1})g(s_{2n - 1})$. The theorem from the previous section tells us that this is enough to recover the coefficients of $f(x)g(x)$, since we have $2n$ samples and $f(x)g(x)$ is of degree $2n - 2$. Once we do that, we've calculated $f(x)g(x)$.
+
+If we can quickly sample and interpolate polynomials, then we can quickly multiply polynomials since the pointwise multiplication step only takes $O(N)$ time.
+#end section
+
+#section Primitive Roots of Unity
+We have the luxury of picking whichever $2n$ sample points $s_0, \dots s_{2n - 1}$ we want, but if we want both sampling and interpolation to be fast, we better pick sample points that allow us to reuse calculations.
+
+The type of number that will allow us to do this is the primitive roots of unity.
+#block Definition
+A number $\om_n$ is said to be an $n$-th root of unity (for some positive integer $n$) if $\om_n^n =1 $.
+<br/><br/>
+In addition, a $n$-th root of unity $\om_n$ is said to be <i>primitive</i> if for all $0 < k < n$, $\om_n^k \neq 1$.
+#end block
+
+In the real numbers, only $1$ and $-1$ could possibly be roots of unity, but not primitive $n$-th roots of unity for $n > 2$, so we'll have to use a different number system. If you're familiar with complex numbers or the integers modulo a prime number, you might know examples of primitive roots of unity. However, we only need to work with the above definition to be able to prove these important properties:
+
+// TODO fix up theorems to have n/2 instead
+#block Theorem
+Let $\om_m$ be a primitive $m$-th root of unity and $\om_{2n}$ be a primitive $2n$-th root of unity.
+<ol>
+	<li>For all $0 < k < m$, the values of $\om_m^k$ are distinct</li>
+	<li>$\om_{2n}^n = -1$</li>
+	<li>For any $k$, $(\om_{2n}^k)^2 = (\om_{2n}^{n + k})^2 = \om_n^k$ where $\om_n$ is some primitive $n$-th root of unity</li>
+	<li>
+		If $0 < k < n$, then $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$.
+	</li>
+</ol>
+#end block
+
+<div class="subheading">Proof of #1</div>
+Suppose the statement isn't true: that there exist $k_1$ and $k_2$ such that $0 < k_1 < k_2 < m$ and $\om_m^{k_1} = \om_m^{k_2}$. If we divide both sides by $\om_m^{k_1}$, we then get $\om_m^{k_2 - k_1} = 1$. But since $0 < k_1 < k_2 < m$, we have $0 < k_2 - k_1 < m$, and by the definition of primitivity, $\om_m^{k_2 - k_1}$ can't be $1$. We reach a contradiction so the values of $\om_m^k$ must indeed be distinct.
+
+<div class="subheading">Proof of #2</div>
+Since $(\om_{2n}^n)^2 = \om_{2n}^{2n} = 1$, we know that $\om_{2n}^n$ must be either $-1$ or $1$. However, since $\om_{2n}$ is primitive and $0 < n < 2n$, $\om_{2n}^n \neq 1$, so it must be $-1$.
+
+<div class="subheading">Proof of #3</div>
+We can verify this by the definitions: $(\om^2_{2n})^n = \om^{2n}_{2n} = 1$. Also, for any $0 < k < n$, $(\om^2_{2n})^k = \om^{2k}_{2n}$, and since $0 < k < n \implies 0 < 2k < 2n \implies \om^{2k}_{2n} \neq 1$. We can also write this result as $\om^2_{2n} = \om_n$.
+
+As a result, we also get the property that $(\om^k_{2n})^2 = (\om^2_{2n})^k = \om_{n}^k$. Also, by combining results above, we have $(\om_{2n}^{n + k})^2 = (\om_{2n}^n\om_{2n}^k)^2 = (-1)^2(\om_{2n}^k)^2 = \om_{n}^k$.
+
+<div class="subheading">Proof of #4</div>
+If $k$ is divisible by $n$, then there exists some $j$ for which $nj = k$. Then
+$$\begin{align}c &= \om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} \\ &= \om_n^0 + \om_n^{nj} + \om_n^{2nj} + \dots + \om_n^{(n-1)nj}\\&=\om_n^0 + (\om_n^{n})^j + (\om_n^{n})^{2j} + \dots + (\om_n^{n})^{(n-1)j}\\&=1+1^j+1^{2j}+\dots+1^{(n-1)j}\\&=n\end{align}$$
+
+If $k$ is not divisible by $n$, then
+$$\begin{align}c &= \om_n^0 + \om_n^k+ \dots + \om_n^{(n-1)k}\end{align}$$
+Let's mutiply both sides by $1 - \om_n^k$.
+$$\require{cancel}\begin{align}c(1 -\om_n^k) &= (\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})(1-\om_n^k)\\c(1-\om_n^k)&=(\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})-\om_n^k(\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})\\c(1-\om_n^k)&=\om_n^0+\om_n^k+\dots+\om_n^{(n-1)k}-\om_n^k-\om_n^{2k}-\dots-\om_n^{nk}\\c(1-\om_n^k)&=\om_n^0+\cancel{\om_n^k}+\dots+\cancel{\om_n^{(n-1)k}}-\cancel{\om_n^k}-\cancel{\om_n^{2k}}-\dots-\om_n^{nk}\\c(1-\om_n^k)&=(\om_n^0-\om_\end{align}$$
+#end section
+
+#section Sampling Quickly
+Let $f(x) = a_0 + \dots + a_{2n-1}x^{2n-1}$ be an $2n - 1$ degree polyomial. We define two $n - 1$ degree polynomials, $f_e$ keeping only the coefficients at even degree and $f_o$ keeping only the coefficients at odd degree:
+$$\begin{align}f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{2n -2}x^{n-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{2n-1}x^{n-1}\end{align}$$
+
+Now let $\om$ be a primitive $2n$-th root of unity. We'll drop the subscript $_{2n}$ for now for convenience. We can conveniently evaluate $f(\om^k)$ from just $f_e(\om^{2k})$ and $f_o(\om^{2k})$:
+$$\begin{align} f_e(\om^{2k}) + \om^kf_o(\om^{2k})&=\left(a_0 + a_2\om^{2k} + \dots + a_{2n-2}\om^{2k(n - 1)}\right)+\om^k\left(a_1+a_3\om^{2k}+\dots+a_{2n-1}\om^{2k(n-1)}\right)\\&=\left(a_0+a_2\om^{2k}+\dots+a_{2n-2}\om^{(2n-2)k}\right)+\left(a_1\om^k+a_3\om^{3k}+\dots+a_{2n-1}\om^{(2n-1)k}\right)\\&=a_0+a_1\om^k+a_2\om^{2k}+a_3\om^{3k}+\dots+a_{2n-2}\om^{(2n-2)k}+a_{2n-1}\om^{(2n-1)k}\\&=f(\om^k)\end{align}$$
+
+Let's bring the subscript $_{2n}$ so we can manipulate the result that we found. If $\om_{2n}$ is a primitive $2n$-th root of unity then
+$$\begin{align}f(\om_{2n}^k)&=f_e(\om_{2n}^{2k}) + \om_{2n}^k f_o(\om_{2n}^{2k})\\&=f_e((\om_{2n}^k)^2 + \om_{2n}^kf_o((\om_{2n}^k)^2)\\&=f_e(\om_n^k)+\om_{2n}^kf_o(\om_n^k)\end{align}$$
+This formula works for all $0 \leq k < 2n$, but if we restrict $k$ to the range $0 \leq k < n$ and consider both $k$ and $k + n$, we find a very special pattern:
+$$\begin{align}f(\om_{2n}^k)&=f_e(\om_n^k)+\om_{2n}^kf_o(\om_n^k)\end{align}$$
+as expected, but
+$$\begin{align}f(\om_{2n}^{k + n})&=f_e(\om_n^{k + n})+\om_{2n}^{k + n}f_o(\om_n^{k + n})\\&=f_e(\om_n^k\om_n^n) + \om_{2n}^n \om_{2n}^k f_o(\om_n^k\om_n^n)\\&=f_e(\om_n^k) - \om_{2n}^k f_o(\om_n^k)\end{align}$$
+
+To recap, we've found that
+#block Theorem
+If
+$$\begin{align}f(x)&= a_0 + a_1x + a_2x^2+ \dots + a_{2n-1}x^{2n-1}\\f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{2n -2}x^{n-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{2n-1}x^{n-1}\end{align}$$
+and $\om_{2n}$ be a primitive $2n$-th root of unity, then for all $0 \leq k < n$,
+$$\begin{align}f(\om_{2n}^k) &= f_e(\om^k_n) + \om^kf_o(\om^k_n)\\f(\om_{2n}^{k+n})&=f_e(\om^k_n) - \om^kf_o(\om^k_n)\end{align}$$
+#end block
+This is an extremely important formula. This means that if we need to sample $f(x)$ at $\om_{2n}^0, \om_{2n}^1, \dots \om_{2n}^{2n-1}$, we can reduce this into the problem of sampling $f_e(x)$ and $f_o(x)$ at $\om_n^0, \om_n^1, \dots \om_n^{n-1}$ with a cost of $O(n)$ steps.
+
+At first glance, this doesn't help at all. In order to calculate $2n$ samples, we need to calculate $n$ samples for each of the functions $f_e$ and $f_o$, which is still $2n$ samples in total.
+
+What if we kept using this formula over and over again? Let $n$ be a power of two, say $n = 2^k$. Suppose we have a polynomial of degree $n - 1$ and want to find $n$ samples. With a cost of $O(n)$ steps, we can reduce the problem into finding $\frac{n}{2}$ samples for $2$ polynomials of degree $\frac{n}{2} - 1$. If we apply the formula to each of the smaller polynomials, then with a cost of $2 \times \frac{n}{2} = O(n)$, we can reduce the problem further to finding $\frac{n}{4}$ samples for $4$ polynomials of degree $\frac{n}{4} - 1$.
+
+Eventually, after $k$ iterations of this, with each iteration incurring a cost of $O(n)$ steps, the problem is reduced to finding one sample for $n$ polynomials each of degree $0$. This is now trivial to do since a sample of a polynomial $f(x) = a_0$ of degree $0$ is just $a_0$, so this step takes $O(n)$ time. In total, since $n = 2^k$, then $k = \log n$, so we spent $O(n) \times O(\log n) = O(n \log n)$ time reducing the problem to the trivial form, and $O(n)$ time solving the trivial form. Therefore, we've found a way to take $n$ samples in just $O(n)$ time.
+
+#block Sampling Algorithm
+Let $n$ be a power of $2$, $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ be a polynomial of degree $n - 1$ and $\om_{n}$ be a primitive $n$-th root of unity.
+<br/><br/>
+To calculate $n$ samples $f(\om_n^0), f(\om_n^1), \dots, f(\om_n^{n-1})$:
+<ul>
+	<li>If $n = 1$, then the only sample we need is $f(\om_1^0) = f(1) = a_0$.</li>
+	<li>
+		Otherwise, let $m = \frac n2$ and $$\begin{align}f_e(x) &= a_0 + a_2x + a_4x^2 + \dots + a_{n-1}x^{m-1}\\f_o(x)&=a_1+a_3x+a_5x^2+\dots+a_nx^{m-1}\end{align}$$
+		We recursively apply this algorithm on $f_e(x)$ and $f_o(x)$ to find $f_e(\om_{m}^0), f_e(\om_{m}^1), \dots, f_e(\om_{m}^{m - 1})$ and $f_o(\om_{m}^0), f_o(\om_{m}^1), \dots, f_o(\om_{m}^{m - 1})$.
+		<br/>
+		From these samples, we can calculuate $f(\om_n^0), f(\om_n^1), \dots, f(\om_n^{n-1})$:
+		<br/>
+		For all $0 \leq k < m$,
+		$$\begin{align}f(\om_n^k) &= f_e(\om^k_m) + \om^kf_o(\om^k_m)\\f(\om_n^{k+m})&=f_e(\om^k_m) - \om^kf_o(\om^k_m)\end{align}$$
+	</li>
+</ul>
+// TODO rewrite front half with m = n/2 instead of 2n
+#end block
+#end section
+#end main
+
