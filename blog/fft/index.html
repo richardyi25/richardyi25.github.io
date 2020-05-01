@@ -29,28 +29,41 @@
 		<div id="toc">
 			<div class="heading">Table of Contents</div>
 			<ul>
-				<li><a href="#toc0">Introduction</a></li>
-				<li><a href="#toc1">Multiplying Polynomials</a></li>
-				<li><a href="#toc2">Sampling and Interpolating</a></li>
-				<li><a href="#toc3">Speedup Overview</a></li>
-				<li><a href="#toc4">Primitive Roots of Unity</a></li>
-				<li><a href="#toc5">Sampling Quickly</a></li>
+				<li><a href="#toc0">Warning</a></li>
+				<li><a href="#toc1">Introduction</a></li>
+				<li><a href="#toc2">Multiplying Polynomials</a></li>
+				<li><a href="#toc3">Sampling and Interpolating</a></li>
+				<li><a href="#toc4">Speedup Overview</a></li>
+				<li><a href="#toc5">Primitive Roots of Unity</a></li>
+				<li><a href="#toc6">Sampling Quickly</a></li>
+				<li><a href="#toc7">Reducing Interpolating to Sampling</a></li>
+				<li><a href="#toc8">Interpolating Quickly</a></li>
 			</ul>
 		</div>
 
 		<div id="main">
 
 			<div id="toc0" class="section">
-				<div class="heading">Introduction</div>
+				<div class="heading">Warning</div>
 				<div class="subsection">
 
 					<p>
-						In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(N^2)$ to $O( N \log N)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
+						Currently, this article is hot gargage.
 					</p>
 				</div>
 			</div>
 
 			<div id="toc1" class="section">
+				<div class="heading">Introduction</div>
+				<div class="subsection">
+
+					<p>
+						In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(n^2)$ to $O(n \log n)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc2" class="section">
 				<div class="heading">Multiplying Polynomials</div>
 				<div class="subsection">
 
@@ -59,13 +72,17 @@
 					</p>
 
 					<div class="block">
-						<div class="block-heading">Defintion</div>
+						<div class="block-heading">Defintion - Polynomial</div>
 A polynomial $f(x)$ of degree $n$ is defined as $$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
 where $a_0, \dots, a_n$ are numbers.
 					</div>
 
 					<p>
-						It's common to include the restriction $a_n \neq 0$, but for later convenience, we won't introduce this restriction.
+						It's common to include the restriction $a_n \neq 0$, but we won't. This allows us to "upgrade" polynomials to a higher degree by adding coefficients with value $0$.
+					</p>
+
+					<p>
+						For example, if $f(x) = a_0 + a_1x + \dots + a_nx^n$ is a polynomial of degree $n$, we can "upgrade" it to a polynomial of degree $n + k$ if we take $f(x)$ to be $a_0 + \dots + a_nx^n + 0a_{n+1} + \dots + 0x^{n+k}$.
 					</p>
 
 					<p>
@@ -81,7 +98,7 @@ where $a_0, \dots, a_n$ are numbers.
 					</p>
 
 					<div class="block">
-						<div class="block-heading">Theorem</div>
+						<div class="block-heading">Polynomial Mutliplciation Formula</div>
 If $$\begin{align}f(x) &= a_0 + a_1x + \dots + a_nx^n\\g(x) &= b_0 + b_1x + \dots + a_nx^n \\h(x) = f(x)g(x) &= c_0 + c_1x + \dots + c_{2n}x^{2n}\end{align}$$then for all $0 \leq k \leq 2n$,
 $$c_k = \sum_{i = 0}^k a_ib_{k - i}$$
 					</div>
@@ -92,7 +109,7 @@ $$c_k = \sum_{i = 0}^k a_ib_{k - i}$$
 				</div>
 			</div>
 
-			<div id="toc2" class="section">
+			<div id="toc3" class="section">
 				<div class="heading">Sampling and Interpolating</div>
 				<div class="subsection">
 
@@ -101,21 +118,33 @@ $$c_k = \sum_{i = 0}^k a_ib_{k - i}$$
 					</p>
 
 					<div class="block">
-						<div class="block-heading">Theorem</div>
-Let $f(x) = a_0 + \dots + a_nx^n$ be a polynomial with degree $n$ whose coefficients $a_0, \dots, a_n$ are unknown. For any choice of distinct numbers $s_0, \dots, s_n$, if we know $f(s_0), \dots, f(s_n)$, then we can uniquely determine $a_0, \dots, a_n$.
+						<div class="block-heading">Theorem - Uniqueness of Interpolation</div>
+Let $f(x) = a_0 + \dots + a_nx^n$ be a polynomial with degree $n$ whose coefficients $a_0, \dots, a_n$ are unknown. For any choice of $n + 1$ distinct numbers $s_0, \dots, s_n$, if we know $f(s_0), \dots, f(s_n)$, then we can uniquely determine $a_0, \dots, a_n$.
 					</div>
 
 					<p>
-						Let's call the choice of distinct numbers $s_0, \dots, s_n$ <i>sampling points</i> and the values of $f(s_0), \dots f(s_n)$ <i>samples</i>. Note that while the samples uniquely determine the coefficients, the samples themselves aren't unique because any choice of distinct sampling points will work.
+						Let's call the choice of distinct numbers $s_0, \dots, s_n$ <i>sampling points</i> and the values of $f(s_0), \dots f(s_n)$ <i>samples</i>. Note that while the samples uniquely determine the coefficients, the samples themselves aren't unique because any choice of distinct sampling points will work. Any polynomial that satisfies the samples is said to <i>interpolate</i> the samples.
 					</p>
 
 					<p>
-						We call the process of calculating samples from the polynomial in coefficient form <i>sampling</i> and the process of determining the coefficients from samples <i>interpolating</i>.
+						We'll call the process of calculating samples from the polynomial in coefficient form <i>sampling</i> and the process of determining the coefficients from samples <i>interpolating</i>.
+					</p>
+
+					<p>
+						We can give a simplified proof sketch for the theorem. Say we have some polynomials $f(x)$ and $g(x)$ of degree $n$ and for $0 \leq i \leq n$, $f(s_i) = g(s_i)$, that is, they have the same value at $n + 1$ points. If we prove that $f(x)$ is neccesarily equal to $g(x)$, then values at $n + 1$ points will uniquely determine a polynomial of degree $n$.
+					</p>
+
+					<p>
+						Consider the polynomial $h(x) = f(x) - g(x)$. Since $f(x)$ and $g(x)$ have degree $n$, $h(x)$ has at most degree $n$, and by the Fundamental Theorem of Algebra, if $h(x)$ is not $0$ for every value of $x$, then it has at most $n$ roots.
+					</p>
+
+					<p>
+						However, $0 \leq i \leq n$, $f(s_i) = g(s_i) \implies f(s_i) - g(s_i) = h(s_i) = 0$, so $h(x)$ has $n + 1$ roots. Therefore, the only possbility is that $h(x) = 0$, which means $f(x) = g(x)$, as required.
 					</p>
 				</div>
 			</div>
 
-			<div id="toc3" class="section">
+			<div id="toc4" class="section">
 				<div class="heading">Speedup Overview</div>
 				<div class="subsection">
 
@@ -137,7 +166,7 @@ Let $f(x) = a_0 + \dots + a_nx^n$ be a polynomial with degree $n$ whose coeffici
 				</div>
 			</div>
 
-			<div id="toc4" class="section">
+			<div id="toc5" class="section">
 				<div class="heading">Primitive Roots of Unity</div>
 				<div class="subsection">
 
@@ -150,8 +179,8 @@ Let $f(x) = a_0 + \dots + a_nx^n$ be a polynomial with degree $n$ whose coeffici
 					</p>
 
 					<div class="block">
-						<div class="block-heading">Definition</div>
-A number $\om_n$ is said to be an $n$-th root of unity (for some positive integer $n$) if $\om_n^n =1 $.
+						<div class="block-heading">Definition - Roots of Unity and Primitivity</div>
+Let $n$ be a positive integer. A number $\om_n$ is said to be an $n$-th root of unity if $\om_n^n =1 $.
 <br/><br/>
 In addition, a $n$-th root of unity $\om_n$ is said to be <i>primitive</i> if for all $0 < k < n$, $\om_n^k \neq 1$.
 					</div>
@@ -161,38 +190,42 @@ In addition, a $n$-th root of unity $\om_n$ is said to be <i>primitive</i> if fo
 					</p>
 
 					<div class="block">
-						<div class="block-heading">Theorem</div>
-Let $\om_m$ be a primitive $m$-th root of unity and $\om_{2n}$ be a primitive $2n$-th root of unity.
+						<div class="block-heading">Properties of Primitive Roots of Unity</div>
+Let $n$ be an even number and $\om_n$ be a primitive $n$-th root of unity and $m = \frac n2$.
 <ol>
-<li>For all $0 < k < m$, the values of $\om_m^k$ are distinct</li>
-<li>$\om_{2n}^n = -1$</li>
-<li>For any $k$, $(\om_{2n}^k)^2 = (\om_{2n}^{n + k})^2 = \om_n^k$ where $\om_n$ is some primitive $n$-th root of unity</li>
+<li>For all $0 < k < n$, the values of $\om_n^k$ are distinct</li>
+<li>$\om_{n}^m = -1$</li>
+<li>For any $k$, $(\om_n^k)^2 = (\om_n^{m + k})^2 = \om_m^k$ where $\om_m$ is a primitive $m$-th root of unity</li>
 <li>
-If $0 < k < n$, then $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$.
+For all $0 < k < n$, $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$.
 </li>
 </ol>
 					</div>
 
+					<p>
+						For the rest of the article, we'll keep the convention of $m = \frac n2$. If you're not interested in proofs, you can skip to the next section.
+					</p>
+
 <div class="subheading">Proof of #1</div>
 
 					<p>
-						Suppose the statement isn't true: that there exist $k_1$ and $k_2$ such that $0 < k_1 < k_2 < m$ and $\om_m^{k_1} = \om_m^{k_2}$. If we divide both sides by $\om_m^{k_1}$, we then get $\om_m^{k_2 - k_1} = 1$. But since $0 < k_1 < k_2 < m$, we have $0 < k_2 - k_1 < m$, and by the definition of primitivity, $\om_m^{k_2 - k_1}$ can't be $1$. We reach a contradiction so the values of $\om_m^k$ must indeed be distinct.
+						Suppose the statement isn't true: that there exist $k_1$ and $k_2$ such that $0 < k_1 < k_2 < n$ and $\om_m^{k_1} = \om_m^{k_2}$. If we divide both sides by $\om_n^{k_1}$, we then get $\om_n^{k_2 - k_1} = 1$. But since $0 < k_1 < k_2 < n$, we have $0 < k_2 - k_1 < n$, and by the definition of primitivity, $\om_n^{k_2 - k_1}$ can't be $1$. We reach a contradiction so the values of $\om_n^k$ must indeed be distinct.
 					</p>
 
 <div class="subheading">Proof of #2</div>
 
 					<p>
-						Since $(\om_{2n}^n)^2 = \om_{2n}^{2n} = 1$, we know that $\om_{2n}^n$ must be either $-1$ or $1$. However, since $\om_{2n}$ is primitive and $0 < n < 2n$, $\om_{2n}^n \neq 1$, so it must be $-1$.
+						Since $(\om_n^m)^2 = \om_n^2m = \om_n^n = 1$, we know that $\om_n^m$ must be either $-1$ or $1$. However, since $\om_n$ is primitive and $0 < m < n$, $\om_n^m \neq 1$, so it must be $-1$.
 					</p>
 
 <div class="subheading">Proof of #3</div>
 
 					<p>
-						We can verify this by the definitions: $(\om^2_{2n})^n = \om^{2n}_{2n} = 1$. Also, for any $0 < k < n$, $(\om^2_{2n})^k = \om^{2k}_{2n}$, and since $0 < k < n \implies 0 < 2k < 2n \implies \om^{2k}_{2n} \neq 1$. We can also write this result as $\om^2_{2n} = \om_n$.
+						We first prove that $\om_n^2$ is a primitive $m$-th root of unity by definition. $\om_n^2$ is a $m$-th root of unity since $(\om_n^2)^m = \om_n^{2m} = \om_n^n = 1$. It is primitive since for all $0 < k < m$, $(\om_n^2)^k = \om_n^{2k}$. Since $0 < k < m$, $0 < 2k < 2m = n$, so $(\om_n^2)^k \neq 1$.
 					</p>
 
 					<p>
-						As a result, we also get the property that $(\om^k_{2n})^2 = (\om^2_{2n})^k = \om_{n}^k$. Also, by combining results above, we have $(\om_{2n}^{n + k})^2 = (\om_{2n}^n\om_{2n}^k)^2 = (-1)^2(\om_{2n}^k)^2 = \om_{n}^k$.
+						As a result, we also get the property that $(\om^k_n)^2 = (\om^2_n)^k = \om_m^k$. Also, by combining results above, we have $(\om_n^{m + k})^2 = (\om_n^m\om_n^k)^2 = (\om_n^m)^2(\om_n^k)^2 = (-1)^2(\om_n^k)^2 = \om_m^k$.
 					</p>
 
 <div class="subheading">Proof of #4</div>
@@ -223,40 +256,60 @@ If $0 < k < n$, then $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 
 				</div>
 			</div>
 
-			<div id="toc5" class="section">
+			<div id="toc6" class="section">
 				<div class="heading">Sampling Quickly</div>
 				<div class="subsection">
 
 					<p>
-						Let $f(x) = a_0 + \dots + a_{2n-1}x^{2n-1}$ be an $2n - 1$ degree polyomial. We define two $n - 1$ degree polynomials, $f_e$ keeping only the coefficients at even degree and $f_o$ keeping only the coefficients at odd degree:
+						We can now solve the problem of finding $n$ samples from a polynomial of degree $n - 1$.
 					</p>
 
 					<p>
-						$$\begin{align}f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{2n -2}x^{n-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{2n-1}x^{n-1}\end{align}$$
+						Let's recap what the problem is
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Sampling Problem Statement</div>
+Given $a_0, \dots, a_{n-1}$ which determines $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$, and a choice of $n$ sampling points $s_0, s_1, \dots, s_{n-1}$, we wish to find the samples
+$$f(s_0), f(s_1), \dots, f(s_{n-1})$$
+where
+$$ \begin{align} f(s_0) &= a_0 + a_1s_0 + a_2s_0^2 + \dots + a_{n-1}s_0^{n-1} \\ f(s_1) &= a_1 + a_1s_1 + a_2s_1^2 + \dots + a_{n-1}s_1^{n-1} \\ &\phantom{$a_1+a_1s_1+a_2$}\vdots \\ f(s_{n-1}) &= a_1 + a_1s_{n-1} + a_2s_{n-1}^2 + \dots + a_{n-1}s_{n-1}^{n-1} \\ \end{align} $$
+					</div>
+
+					<p>
+						We can easily evaluate the $n$ samples in $O(n^2)$ time since it takes $O(n)$ time to calculate a single sample and we have $O(n)$ samples to calculate. In order to speed this up to $O(n \log n)$, we'll have to take advantage of the properties of the primitive roots of unity.
 					</p>
 
 					<p>
-						Now let $\om$ be a primitive $2n$-th root of unity. We'll drop the subscript $_{2n}$ for now for convenience. We can conveniently evaluate $f(\om^k)$ from just $f_e(\om^{2k})$ and $f_o(\om^{2k})$:
+						Let $n$ be an even number and $m = \frac n2$. Let $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ be an $n - 1$ degree polyomial. We define two $n - 1$ degree polynomials, $f_e$ keeping only the coefficients at even degree and $f_o$ keeping only the coefficients at odd degree:
 					</p>
 
 					<p>
-						$$\begin{align} f_e(\om^{2k}) + \om^kf_o(\om^{2k})&=\left(a_0 + a_2\om^{2k} + \dots + a_{2n-2}\om^{2k(n - 1)}\right)+\om^k\left(a_1+a_3\om^{2k}+\dots+a_{2n-1}\om^{2k(n-1)}\right)\\&=\left(a_0+a_2\om^{2k}+\dots+a_{2n-2}\om^{(2n-2)k}\right)+\left(a_1\om^k+a_3\om^{3k}+\dots+a_{2n-1}\om^{(2n-1)k}\right)\\&=a_0+a_1\om^k+a_2\om^{2k}+a_3\om^{3k}+\dots+a_{2n-2}\om^{(2n-2)k}+a_{2n-1}\om^{(2n-1)k}\\&=f(\om^k)\end{align}$$
+						$$\begin{align}f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{n-2}x^{m-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{n-1}x^{m-1}\end{align}$$
 					</p>
 
 					<p>
-						Let's bring the subscript $_{2n}$ so we can manipulate the result that we found. If $\om_{2n}$ is a primitive $2n$-th root of unity then
+						Now let $\om_n$ be a primitive $n$-th root of unity. We'll drop the subscript $_n$ for now for convenience. We can conveniently evaluate $f(\om^k)$ from just $f_e(\om^{2k})$ and $f_o(\om^{2k})$:
 					</p>
 
 					<p>
-						$$\begin{align}f(\om_{2n}^k)&=f_e(\om_{2n}^{2k}) + \om_{2n}^k f_o(\om_{2n}^{2k})\\&=f_e((\om_{2n}^k)^2 + \om_{2n}^kf_o((\om_{2n}^k)^2)\\&=f_e(\om_n^k)+\om_{2n}^kf_o(\om_n^k)\end{align}$$
+						$$\begin{align} f_e(\om^{2k}) + \om^kf_o(\om^{2k})&=\left(a_0 + a_2\om^{2k} + \dots + a_{n-2}\om^{2k(m - 1)}\right)+\om^k\left(a_1+a_3\om^{2k}+\dots+a_{n-1}\om^{2k(m-1)}\right)\\&=\left(a_0+a_2\om^{2k}+\dots+a_{n-2}\om^{(n-2)k}\right)+\left(a_1\om^k+a_3\om^{3k}+\dots+a_{n-1}\om^{(n-1)k}\right)\\&=a_0+a_1\om^k+a_2\om^{2k}+a_3\om^{3k}+\dots+a_{n-2}\om^{(n-2)k}+a_{n-1}\om^{(n-1)k}\\&=f(\om^k)\end{align}$$
 					</p>
 
 					<p>
-						This formula works for all $0 \leq k < 2n$, but if we restrict $k$ to the range $0 \leq k < n$ and consider both $k$ and $k + n$, we find a very special pattern:
+						Let's bring the subscript $_n$ back so we can manipulate the result that we found. If $\om_n$ is a primitive $n$-th root of unity and $m = \frac n2$, then
 					</p>
 
 					<p>
-						$$\begin{align}f(\om_{2n}^k)&=f_e(\om_n^k)+\om_{2n}^kf_o(\om_n^k)\end{align}$$
+						$$\begin{align}f(\om_n^k)&=f_e(\om_n^{2k}) + \om_n^k f_o(\om_n^{2k})\\&=f_e((\om_n^k)^2) + \om_n^kf_o((\om_n^k)^2)\\&=f_e(\om_m^k)+\om_n^kf_o(\om_m^k)\end{align}$$
+					</p>
+
+					<p>
+						This formula works for all $0 \leq k < n$, but if we restrict $k$ to the range $0 \leq k < m$ and consider both $k$ and $k + m$, we find a very special pattern:
+					</p>
+
+					<p>
+						$$\begin{align}f(\om_n^k)&=f_e(\om_m^k)+\om_n^kf_o(\om_m^k)\end{align}$$
 					</p>
 
 					<p>
@@ -264,7 +317,7 @@ If $0 < k < n$, then $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 
 					</p>
 
 					<p>
-						$$\begin{align}f(\om_{2n}^{k + n})&=f_e(\om_n^{k + n})+\om_{2n}^{k + n}f_o(\om_n^{k + n})\\&=f_e(\om_n^k\om_n^n) + \om_{2n}^n \om_{2n}^k f_o(\om_n^k\om_n^n)\\&=f_e(\om_n^k) - \om_{2n}^k f_o(\om_n^k)\end{align}$$
+						$$\begin{align}f(\om_n^{k + m})&=f_e(\om_n^{k + m})+\om_n^{k + m}f_o(\om_m^{k + m})\\&=f_e(\om_m^k\om_m^m) + \om_n^n \om_n^k f_o(\om_m^k\om_m^m)\\&=f_e(\om_m^k) - \om_n^k f_o(\om_m^k)\end{align}$$
 					</p>
 
 					<p>
@@ -272,11 +325,11 @@ If $0 < k < n$, then $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 
 					</p>
 
 					<div class="block">
-						<div class="block-heading">Theorem</div>
-If
-$$\begin{align}f(x)&= a_0 + a_1x + a_2x^2+ \dots + a_{2n-1}x^{2n-1}\\f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{2n -2}x^{n-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{2n-1}x^{n-1}\end{align}$$
-and $\om_{2n}$ be a primitive $2n$-th root of unity, then for all $0 \leq k < n$,
-$$\begin{align}f(\om_{2n}^k) &= f_e(\om^k_n) + \om^kf_o(\om^k_n)\\f(\om_{2n}^{k+n})&=f_e(\om^k_n) - \om^kf_o(\om^k_n)\end{align}$$
+						<div class="block-heading">Sampling Reduction Formula</div>
+If $n$ is an even number, $m = \frac n2$, and
+$$\begin{align}f(x)&= a_0 + a_1x + a_2x^2+ \dots + a_{n-1}x^{n-1}\\f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{n -2}x^{m-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{n-1}x^{m-1}\end{align}$$
+and $\om_n$ is a primitive $n$-th root of unity, then for all $0 \leq k < m$,
+$$\begin{align}f(\om_n^k) &= f_e(\om^k_m) + \om^k_n f_o(\om^k_m)\\f(\om_n^{k+m})&=f_e(\om^k_m) - \om^k_nf_o(\om^k_m)\end{align}$$
 					</div>
 
 					<p>
@@ -313,6 +366,219 @@ $$\begin{align}f(\om_n^k) &= f_e(\om^k_m) + \om^kf_o(\om^k_m)\\f(\om_n^{k+m})&=f
 </li>
 </ul>
 					</div>
+
+					<p>
+						Of course, when we sample a polynomial, it's not always going to have a degree that's one less than a power of $2$. This isn't a problem since we can just "upgrade" the polynomial to one less than the next power of $2$.
+					</p>
+
+					<p>
+						For example, if we have a polynomial $f(x) = a_0 + \dots + a_nx^n$ of degree $n$ and $2^k$ is the smallest power of $2$ at least as big as $n - 1$, then we can interpret $f(x)$ as $f(x) = a_0 + \dots a_nx^n + 0x^{n+1} + \dots + 0x^{2^k - 1}$.
+					</p>
+
+					<p>
+						In the worst case, the new degree and the number of samples we'll have to take is doubled. This is fine because this is just a constant factor.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc7" class="section">
+				<div class="heading">Reducing Interpolating to Sampling</div>
+				<div class="subsection">
+
+					<p>
+						While sampling can be easily done in $O(n^2)$, it seems like interpolating in any time complexity is a daunting task. However, in this section, we'll find that through the magic of primitive roots of unity, interpolating is just sampling in disguise.
+					</p>
+
+					<p>
+						Let's first recap what the problem asks us to do.
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Interpolating Problem Statement</div>
+Let $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ be a polynomial of degree $n - 1$.
+<br/>
+Given $n$ sample points $s_0, \dots, s_{n-1}$ and $n$ samples $v_0, \dots, v_{n-1}$ where it is known that $f(s_0) = v_0, f(s_1) = v_1, \dots, f(s_{n-1}) = v_{n-1}$, we wish to find $a_0, \dots a_{n-1}$.
+<br/><br/>
+In other words, we want to solve the system of equations
+$$ \begin{align} a_0 + a_1s_0 + a_2s_0^2 + \dots + a_{n-1}s_0^{n-1} &= v_0 \\ a_1 + a_1s_1 + a_2s_1^2 + \dots + a_{n-1}s_1^{n-1} &= v_1 \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\ a_1 + a_1s_{n-1} + a_2s_{n-1}^2 + \dots + a_{n-1}s_{n-1}^{n-1} &= v_{n-1} \\ \end{align} $$
+					</div>
+
+					<p>
+						We note that by Uniqueness of Interpolation, that we're guaranteed exactly one possible value for $a_0, \dots, a_n$.
+					</p>
+
+					<p>
+						Let's prove an interesting property about combining interpolating problems:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Theorem - Additivity of Interpolation</div>
+Let $f(x)$ and $g(x)$ be polynomials of degree $n - 1$.
+Suppose we are given sample points $s_0, \dots, s_n$ and we know that:
+$$u_0 = f(s_0), u_1 = f(s_1), \dots, u_{n-1} = f(s_{n-1}) \\ v_0 = f(s_0), v_1 = f(s_1), \dots, v_{n-1} = f(s_{n-1})$$
+and we've found $f(x)$ and $g(x)$.
+<br/><br/>
+Then the polynomial $h(x)$ that interpolates the samples $(u_0 + v_0), (u_1 + v_1), \dots, (u_{n-1}, v_{n-1})$ is $h(x) = f(x) + g(x)$.
+					</div>
+
+					<p>
+						The proof of this is pretty simple. At each of the sample points $s_i$ where $0 \leq i < n$, $h(s_i) = f(s_i) + g(s_i) = u_i + v_i$. Again, by the Uniquness of Interpolation, $h(x) = f(x) + g(x)$ is the only possible polynomial that interpolates the samples.
+					</p>
+
+					<p>
+						This theorem seems trivial but it lets us break down the problem into easier subproblems. Let $v_0, \dots, v_n$ be samples. For $0 \leq k < n$, we'll define the <i>$k$-th partial sample set</i> to be $0, \dots, 0, v_k, 0, \dots, 0$. In other words, it's only the $k$-th sample and every other sample has been set to $0$.
+					</p>
+
+					<p>
+						If we can solve the interpolation problem for all of the partial sample sets, we'll can just add the interpolating polynomials together to get the interpolation of $v_0, \dots, v_n$.
+					</p>
+
+					<p>
+						Recall that we've picked $s_0, \dots, s_{n-1}$ to be $\om_n^0, \dots, \om_n^{n-1}$ where $\om_n$ is a primitive $n$-th root of unity. Now let's try to interpolate the $0$-th partial sample set, that is, we want to solve the system
+					</p>
+
+					<p>
+						$$ \begin{align} a_0 + a_1 + a_2 + \dots + a_{n-1} &= v_0 \\ a_0 + a_1\om_n^1 + a_2\om_n^2 + \dots + a_{n-1}\om_n^{n-1} &= 0 \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\ a_0 + a_1\om_n^{n-1} + a_2\om_n^{2(n-1)} + \dots + a_{n-1}\om_n^{(n-1)^2} &= 0 \\ \end{align} $$
+					</p>
+
+					<p>
+						This doesn't make the problem any easier, but if we try something silly, we'll see that everything works out. If we set $a_0 = a_1 = a_2 = \dots = a_{n-1} = \frac 1n v_0$, then we see that indeed $a_0 + a_1 + a_2 + \dots + a_{n-1} = \frac 1nv_0 + \dots + \frac 1nv_0 = \frac 1nv_0(n) = v_0$.
+					</p>
+
+					<p>
+						But do we satisfy the other equations? Well for $0 < k < n$, we have
+					</p>
+
+					<p>
+						$$\begin{align} &\phantom{=.} a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om_n^{(n-1)k} \\ &= \tfrac 1nv_0 + \tfrac 1nv_0\om_n^k + \tfrac 1nv_0\om_n^{2k} + \dots + \tfrac 1nv_0\om_n^{(n-1)k} \\ &= \tfrac 1nv_0 \left(1 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} \right)\end{align}$$
+					</p>
+
+					<p>
+						By the fourth primitive root of unity property, for all $0 < k < n$, $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$, so
+					</p>
+
+					<p>
+						$$\begin{align} &\phantom{=.} \tfrac 1nv_0 \left(1 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k}\right) \\ &= \tfrac 1nv_0 (0) \\ &= 0 \end{align}$$
+					</p>
+
+					<p>
+						Now that we've solved the $0$-th partial sample set, we can also solve the $k$-th partial sample set for $0 < k < n$. This time, we want to solve the system
+					</p>
+
+					<p>
+						$$ \begin{align} a_0 + a_1 + a_2 + \dots + a_{n-1} &= 0 \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om_n^{(n-1)k} &= v_k \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\ a_0 + a_1\om_n^{n-1} + a_2\om_n^{2(n-1)} + \dots + a_{n-1}\om_n^{(n-1)^2} &= 0 \\ \end{align} $$
+					</p>
+
+					<p>
+						We can do something similar, but instead of setting $a_0 = \dots = a_n = \frac 1nv_0$, we'll set
+					</p>
+
+					<p>
+						$$\begin{align}a_0 &= \tfrac 1nv_k \\a_1 &= \tfrac 1nv_k\om_n^{-k}\\ a_2 &= \tfrac 1nv_k\om_n^{-2k}\\ &\phantom{/}\vdots\\ a_{n-1} &= \tfrac 1nv_k \om_n^{-(n-1)k}\end{align}$$
+					</p>
+
+					<p>
+						That way, we have
+					</p>
+
+					<p>
+						$$ \begin{align} &\phantom{=.}a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om^{(n-1)k}\\ &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k}\om_n^k + \tfrac 1nv_k\om_n^{-2k}\om_n^{2k}+ \dots+ \tfrac 1nv_k \om_n^{-(n-1)k}\om_n^{-(n-1)k} \\ &= \tfrac 1nv_k\left( 1 + \om_n^{-k}\om_n^k + \om_n^{-2k}\om_n^{2k} + \dots + \om_n^{-(n-1)k}\om_n^{(n-1)k}\right)\\&=\tfrac 1nv_k\left(1+1+1+\dots+1\right)\\&=\tfrac 1nv_k(n) \\&= v_k\end{align} $$
+					</p>
+
+					<p>
+						And see once again for any $i \neq k$,
+					</p>
+
+					<p>
+						$$\begin{align} &\phantom{=.} a_0 + a_1\om_n^i + a_2\om_n^{2i} + \dots + a_{n-1}\om_n^{(n-1)i}\\ &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k}\om_n^i + \tfrac 1nv_k\om_n^{-2k}\om_n^{2i} + \dots + a_{n-1}\om_n^{-(n-1)k}\om_n^{(n-1)i}\\ &= \tfrac 1nv_k \left(1 + \om_n^{-k}\om_n^i + \om_n^{-2k}\om_n^{2i} + \dots + \om_n^{-(n-1)k}\om_n^{(n-1)i}\right)\\ &= \tfrac 1nv_k \left(1 + \om_n^{i-k} + \om_n^{2(i-k)} + \dots + \om_n^{(n-1)(i-k)} \right) \end{align}$$
+					</p>
+
+					<p>
+						Let $j = i - k$, we have
+					</p>
+
+					<p>
+						$$\tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right)$$
+					</p>
+
+					<p>
+						We know that $0 \leq i, k < n$ and $i \neq k$, and there are 2 cases:
+					</p>
+
+<ol>
+
+<li>
+
+					<p>
+						If $i > k$, then $0 < i - k < n$ or $0 < j < n$. Therefore,
+					</p>
+
+					<p>
+						$$\begin{align}&\phantom{=.}\tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right)\\&=\tfrac 1nv_k (0)\\&=0\end{align}$$
+					</p>
+
+					<p>
+						as required.
+					</p>
+
+</li>
+
+<li>
+
+					<p>
+						If $i < k$, then $-n < i - k < 0$ or $-n < j < 0$. Adding $n$ to everything, we get $0 < j + n < n$.
+					</p>
+
+					<p>
+						As a side note, we note that for any number $c$, $\om_n^{cn} = (\om_n^n)^c = 1^c = 1$.
+					</p>
+
+					<p>
+						$$\begin{align}&\phantom{=.}\tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right)\\&=\tfrac 1nv_k \left(1 + \om_n^{j}\om_n^n + \om_n^{2j}\om_n^{2n} + \dots + \om_n^{(n-1)j}\om_n^{(n-1)n}\right)\\&=\tfrac 1nv_k \left(1 + \om_n^{j+n} + \om_n^{2(j + n)} +\dots+\om_n^{(n-1)(j + n)}\right)\\&=\tfrac 1nv_k (0)\\&=0\end{align}$$
+					</p>
+
+					<p>
+						as required.
+					</p>
+
+</li>
+
+</ol>
+
+					<p>
+						To recap,
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Interpolation Formula</div>
+Let $\om_n$ be a primitive $n$-th root of unity.
+<br/>
+Let $v_0, \dots, v_{n-1}$ $n$ samples, with $v_k = f(\om_n^k)$ for all $0 \leq k < n$.
+<br/>
+The solution to the $k$-th partial sample set is $a_i = \frac 1nv_k \om_n^{-ik}$ for all $0 \leq i < n$, that is
+$$\begin{align} f(x) &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k} + \tfrac 1nv_k\om_n^{-2k} + \dots + \tfrac 1nv_k\om_n^{-(n-1)k}\\ &= \tfrac 1nv_k \left(1 + \om_n^{-k} + \om_n^{-2k} + \dots + \om_n^{-(n-1)k} \right) \end{align}$$
+By the Additivity of Interpolation, the solution to $a_0, \dots, a_{n-1}$ is the sum of interpolations of all $n$ partial sample sets, that is
+$$\begin{align}
+a_0 &= \tfrac1n v_0 + \tfrac1n v_1 + \tfrac1n v_2 + \dots + \tfrac1n v_{n-1} \\
+a_1 &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-k} + \tfrac1n v_2\om_n^{-2k} + \dots + \tfrac1n v_{n-1}\om_n^{-(n-1)k} \\
+a_2 &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-2k} + \tfrac1n v_2\om_n^{-4k} + \dots + \tfrac1n v_{n-1}\om_n^{-2(n-1)k} \\
+&\phantom{XXXXXXXXXXXX}\vdots\\
+a_{n-1} &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-(n-1)k} + \tfrac1n v_2\om_n^{-2(n-1)k} + \dots + \tfrac1n v_{n-1}\om_n^{-(n-1)^2k} \\
+\end{align}$$
+Pulling out $\frac 1n$ from each term, we get
+$$\begin{align} a_0 &= \tfrac 1n \left( v_0 +  v_1 +  v_2 + \dots +  v_{n-1} \right)\\ a_1 &= \tfrac 1n \left( v_0 +  v_1\om_n^{-k} +  v_2\om_n^{-2k} + \dots +  v_{n-1}\om_n^{-(n-1)k} \right)\\ a_2 &= \tfrac 1n \left( v_0 +  v_1\om_n^{-2k} +  v_2\om_n^{-4k} + \dots +  v_{n-1}\om_n^{-2(n-1)k} \right)\\ &\phantom{XXXXXXXXXXXX}\vdots\\ a_{n-1} &= \tfrac 1n \left( v_0 +  v_1\om_n^{-(n-1)k} +  v_2\om_n^{-2(n-1)k} + \dots +  v_{n-1}\om_n^{-(n-1)^2k} \right)\\ \end{align}$$
+					</div>
+
+					<p>
+						Ignoring the factor of $\frac 1n$, this equation looks an awful lot like the sampling problem.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc8" class="section">
+				<div class="heading">Interpolating Quickly</div>
+				<div class="subsection">
+
 				</div>
 			</div>
 
