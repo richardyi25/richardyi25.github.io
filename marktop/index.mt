@@ -1,0 +1,140 @@
+#site-title Marktop
+#title Marktop
+#toc
+
+#latex-preamble
+$$
+\DeclareMathOperator*{\special}{special}
+$$
+#end latex-preamble
+
+#main
+
+#section Introduction 
+For basic and information, please visit the <a href="https://github.com/richardyi25/marktop">Github page</a>.
+#end section
+
+#section Demo
+This entire site was generated using Marktop! You can view the source <a href="index.mt.txt">here</a>.
+#end section
+
+#section General Syntax Rules
+A section starts with the syntax <pre>#keyword [Description]</pre> and ends with the syntax<pre>#end keyword</pre>
+
+Indentation is currently not supported; do not begin any line with whitespace.
+
+All article paragraphs must be on the same line. All empty lines are ignored. Any HTML code is treated as such.
+
+Since #, &lt, and &gt; are special characters, they must be written as &amp;#35; &amp;lt; and &amp;gt; respectively.
+#end section
+
+#section Syntax
+<b><pre>#site-title [Title]</pre></b>
+
+Set the &lt;title&gt; tag to [Title].
+
+<hr>
+
+<b><pre>#title [Title]</pre></b>
+
+Set the article title to [Title].
+
+<hr>
+
+<b><pre>#warning</pre></b>
+
+Generate a warning alerting visitors that the article is incomplete or unfinished.
+
+<hr>
+
+<b><pre>#toc</pre></b>
+
+Automatically generate a table of contents based on the sections (see below).
+
+<hr>
+
+<b><pre>#latex-preamble</pre></b>
+<b><pre>[preamble]</pre></b>
+<b><pre>#end latex-preamble</pre></b>
+
+A place to write LaTeX code that will be hidden on the website. Useful for defining functions such as using
+
+<pre>\DeclareMathOperator*{\special}{special}</pre>
+
+so that it can be used similar to a summation:
+$$ \special_{i = 0}^{N} f(i) $$
+
+<hr>
+
+<b><pre>#main</pre></b>
+<b><pre>#end main</pre></b>
+
+The declaration marks the start and end of the actual article content, which is divided into sections (see below).
+
+<hr>
+
+<b><pre>#section [Title]</pre></b>
+<b><pre>#end section</pre></b>
+
+[Title] is the title of the section. These mark a section, which is how one topic of the article.
+
+Sections may only be defined within the main tags.
+
+<hr>
+
+<b><pre>#block</pre></b>
+<b><pre>#end block</pre></b>
+
+A block is meant to highlight a definition or bring focus to an idea.
+
+Below is an example:
+
+#block Newton's Second Law of Motion
+$$ F_{net} = ma $$
+#end block
+
+<hr>
+
+<b><pre>#code [Highlight]</pre></b>
+<b><pre>#end code</pre></b>
+
+This displays the text between the tags to be displayed as code, using Prism.js.
+
+[Highlight] described the lines to be highlighted. The syntax is as follows:
+
+<pre>start1-end1,start2-end2,...</pre>
+
+The range of lines is described using start-end (inclusive), and ranges are separated by commas.
+
+The current default is C++ highlighting, and more support will be added at a later time.
+
+Below is an example:
+
+#code 10-11
+// Here is some C++ code
+#include &lt;iostream&gt;
+
+int main(){
+	int a, b;
+	std::cin >> a >> b;
+	std::cout << a + b;
+}
+
+// This line
+// and this line should be highlighted
+#end code
+
+Again, #, &lt, and &gt; are special characters, and they must be escaped.
+
+<b>LaTeX support</b>
+
+The special characters for LaTeX are \$ for inline and \$\$ for display mode. LaTeX display is powered by MathJax.
+
+Here is an example of inline LaTeX: Newton's Second Law of Motion is written as $F_{net} = ma$, which describes the relationship between the net force, mass, and acceleration of an object.
+
+Here is an example of display-mode LaTeX:
+$$ F_{net} = ma $$
+
+#end section
+
+#end main

@@ -7,11 +7,9 @@ $$
 #end latex-preamble
 #toc
 
-#main
+#warning
 
-#section Warning
-Currently, this article is hot gargage.
-#end section
+#main
 
 #section Introduction
 In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(n^2)$ to $O(n \log n)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
@@ -28,13 +26,26 @@ It's common to include the restriction $a_n \neq 0$, but we won't. This allows u
 For example, if $f(x) = a_0 + a_1x + \dots + a_nx^n$ is a polynomial of degree $n$, we can "upgrade" it to a polynomial of degree $n + k$ if we take $f(x)$ to be $a_0 + \dots + a_nx^n + 0a_{n+1} + \dots + 0x^{n+k}$.
 
 We can multiply polynomials to get a new polynomial. Suppose $f(x) = a_0 + a_1 + \dots + a_nx^n$ and $g(x) = b_0 + b_1 + \dots + b_nx^n$ are both polynomials of degree $n$. Let $h(x) = f(x)g(x)$ be their product. We can calculate $h(x)$ by distributing and collecting the terms:
-$$\begin{align} h(x) &= f(x)g(x)\\&=(a_0 + a_1x + \dots + a_nx^n)(b_0 + b_1x + \dots + b_nx^n)\\&= \sum_{i = 0}^n\sum_{j = 0}^n a_ib_jx^{i+j} \end{align}$$
+$$
+\begin{align}
+h(x) &= f(x)g(x) \\
+     &=(a_0 + a_1x + \dots + a_nx^n)(b_0 + b_1x + \dots + b_nx^n) \\
+     &= \sum_{i = 0}^n \sum_{j = 0}^n a_ib_jx^{i+j}
+\end{align}
+$$
 
 The product $h(x) = f(x)g(x) = c_0 + c_1x + \dots + c_{2n}x^{2n}$ is a polynomial of degree $2n$. We can find the $k$-th coefficient $c_k$ for all $0 \leq k \leq 2n$ by adding all $a_ib_j$ such that $i + j = k$. To do this, we loop thourgh all $i$ from 0 to $k$ inclusive and set $j = k - i$. 
 
 #block Polynomial Mutliplciation Formula
-If $$\begin{align}f(x) &= a_0 + a_1x + \dots + a_nx^n\\g(x) &= b_0 + b_1x + \dots + a_nx^n \\h(x) = f(x)g(x) &= c_0 + c_1x + \dots + c_{2n}x^{2n}\end{align}$$then for all $0 \leq k \leq 2n$,
-$$c_k = \sum_{i = 0}^k a_ib_{k - i}$$
+If
+$$
+\begin{align}
+f(x) &= a_0 + a_1x + \dots + a_nx^n \\
+g(x) &= b_0 + b_1x + \dots + a_nx^n \\
+h(x) = f(x)g(x) &= c_0 + c_1x + \dots + c_{2n}x^{2n}\end{align}
+$$
+then for all $0 \leq k \leq 2n$,
+$$ c_k = \sum_{i = 0}^k a_ib_{k - i} $$
 #end block
 
 Note that this formula takes $O(n^2)$ time to compute $c_k$ for all $0 \leq k \leq 2n$, despite it only being $O(n)$ space of information. There seems to be a neat structure to the computation, so there's probably room for improvement by reusing calculations. This is where the Fast Fourier Transform comes in.
@@ -73,7 +84,6 @@ We have the luxury of picking whichever $2n$ sample points $s_0, \dots s_{2n - 1
 The type of number that will allow us to do this is the primitive roots of unity.
 #block Definition - Roots of Unity and Primitivity
 Let $n$ be a positive integer. A number $\om_n$ is said to be an $n$-th root of unity if $\om_n^n =1 $.
-<br/><br/>
 In addition, a $n$-th root of unity $\om_n$ is said to be <i>primitive</i> if for all $0 < k < n$, $\om_n^k \neq 1$.
 #end block
 
@@ -108,7 +118,19 @@ As a result, we also get the property that $(\om^k_n)^2 = (\om^2_n)^k = \om_m^k$
 Let $c$ be the value of the sum $\om_n^0 + \om_n^k+ \dots + \om_n^{(n-1)k}$. We want to prove that $c=0$.
 $$\begin{align}c &= \om_n^0 + \om_n^k+ \dots + \om_n^{(n-1)k}\end{align}$$
 Let's mutiply both sides by $1 - \om_n^k$:
-$$\require{cancel}\begin{align}c(1 -\om_n^k) &= (\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})(1-\om_n^k)\\c(1-\om_n^k)&=(\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})-\om_n^k(\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})\\c(1-\om_n^k)&=\om_n^0+\om_n^k+\dots+\om_n^{(n-1)k}-\om_n^k-\om_n^{2k}-\dots-\om_n^{nk}\\c(1-\om_n^k)&=\om_n^0+\cancel{\om_n^k}+\dots+\cancel{\om_n^{(n-1)k}}-\cancel{\om_n^k}-\cancel{\om_n^{2k}}-\dots-\om_n^{nk}\\c(1-\om_n^k)&=\om_n^0-\om_n^{nk}\\c(1-\om_n^k)&=1-(\om_n^{n})^k\\c(1-\om_n^k)&=1-(1)^k\\c(1-\om_n^k)&=0\end{align}$$
+$$
+\require{cancel}
+\begin{align}
+c(1 -\om_n^k) &= (\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})(1-\om_n^k) \\
+c(1-\om_n^k)  &= (\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})-\om_n^k(\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k}) \\
+c(1-\om_n^k)  &= \om_n^0+\om_n^k+\dots+\om_n^{(n-1)k}-\om_n^k-\om_n^{2k}-\dots-\om_n^{nk} \\
+c(1-\om_n^k)  &= \om_n^0+\cancel{\om_n^k}+\dots+\cancel{\om_n^{(n-1)k}}-\cancel{\om_n^k}-\cancel{\om_n^{2k}}-\dots-\om_n^{nk} \\
+c(1-\om_n^k)  &= \om_n^0-\om_n^{nk} \\
+c(1-\om_n^k)  &= 1-(\om_n^{n})^k \\
+c(1-\om_n^k)  &= 1-(1)^k \\
+c(1-\om_n^k)  &= 0
+\end{align}
+$$
 Since $c(1-\om_n^k) = 0$, at least one of $c$ and $(1-\om_n^k)$ must be $0$.
 
 But since $0 < k < n$, by definition we have $\om_n^k \neq 1 \implies 1 - \om_n^k \neq 0$, so $c$ must be $0$.
@@ -119,31 +141,74 @@ We can now solve the problem of finding $n$ samples from a polynomial of degree 
 Let's recap what the problem is
 #block Sampling Problem Statement
 Given $a_0, \dots, a_{n-1}$ which determines $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$, and a choice of $n$ sampling points $s_0, s_1, \dots, s_{n-1}$, we wish to find the samples
-$$f(s_0), f(s_1), \dots, f(s_{n-1})$$
+$$ f(s_0), f(s_1), \dots, f(s_{n-1}) $$
 where
-$$ \begin{align} f(s_0) &= a_0 + a_1s_0 + a_2s_0^2 + \dots + a_{n-1}s_0^{n-1} \\ f(s_1) &= a_1 + a_1s_1 + a_2s_1^2 + \dots + a_{n-1}s_1^{n-1} \\ &\phantom{$a_1+a_1s_1+a_2$}\vdots \\ f(s_{n-1}) &= a_1 + a_1s_{n-1} + a_2s_{n-1}^2 + \dots + a_{n-1}s_{n-1}^{n-1} \\ \end{align} $$
+$$
+\begin{align}
+f(s_0) &= a_0 + a_1s_0 + a_2s_0^2 + \dots + a_{n-1}s_0^{n-1} \\
+f(s_1) &= a_1 + a_1s_1 + a_2s_1^2 + \dots + a_{n-1}s_1^{n-1} \\
+&\phantom{$a_1+a_1s_1+a_2$}     \vdots \\
+f(s_{n-1}) &= a_1 + a_1s_{n-1} + a_2s_{n-1}^2 + \dots + a_{n-1}s_{n-1}^{n-1} \\
+\end{align}
+$$
 #end block
 
 We can easily evaluate the $n$ samples in $O(n^2)$ time since it takes $O(n)$ time to calculate a single sample and we have $O(n)$ samples to calculate. In order to speed this up to $O(n \log n)$, we'll have to take advantage of the properties of the primitive roots of unity.
 
 Let $n$ be an even number and $m = \frac n2$. Let $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ be an $n - 1$ degree polyomial. We define two $n - 1$ degree polynomials, $f_e$ keeping only the coefficients at even degree and $f_o$ keeping only the coefficients at odd degree:
-$$\begin{align}f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{n-2}x^{m-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{n-1}x^{m-1}\end{align}$$
+$$
+\begin{align}
+f_e(x) &= a_0 + a_2x + a_4x^2 + \dots+ a_{n-2}x^{m-1}
+f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{n-1}x^{m-1}
+\end{align}
+$$
 
 Now let $\om_n$ be a primitive $n$-th root of unity. We'll drop the subscript $_n$ for now for convenience. We can conveniently evaluate $f(\om^k)$ from just $f_e(\om^{2k})$ and $f_o(\om^{2k})$:
-$$\begin{align} f_e(\om^{2k}) + \om^kf_o(\om^{2k})&=\left(a_0 + a_2\om^{2k} + \dots + a_{n-2}\om^{2k(m - 1)}\right)+\om^k\left(a_1+a_3\om^{2k}+\dots+a_{n-1}\om^{2k(m-1)}\right)\\&=\left(a_0+a_2\om^{2k}+\dots+a_{n-2}\om^{(n-2)k}\right)+\left(a_1\om^k+a_3\om^{3k}+\dots+a_{n-1}\om^{(n-1)k}\right)\\&=a_0+a_1\om^k+a_2\om^{2k}+a_3\om^{3k}+\dots+a_{n-2}\om^{(n-2)k}+a_{n-1}\om^{(n-1)k}\\&=f(\om^k)\end{align}$$
+$$
+\begin{align}
+f_e(\om^{2k}) + \om^kf_o(\om^{2k})
+  &= \left(a_0 + a_2\om^{2k} + \dots + a_{n-2}\om^{2k(m - 1)}\right)+\om^k\left(a_1+a_3\om^{2k}+\dots+a_{n-1}\om^{2k(m-1)}\right) \\
+  &= \left(a_0+a_2\om^{2k}+\dots+a_{n-2}\om^{(n-2)k}\right)+\left(a_1\om^k+a_3\om^{3k}+\dots+a_{n-1}\om^{(n-1)k}\right) \\
+  &= a_0+a_1\om^k+a_2\om^{2k}+a_3\om^{3k}+\dots+a_{n-2}\om^{(n-2)k}+a_{n-1}\om^{(n-1)k} \\
+  &= f(\om^k)
+\end{align}
+$$
 
 Let's bring the subscript $_n$ back so we can manipulate the result that we found. If $\om_n$ is a primitive $n$-th root of unity and $m = \frac n2$, then
-$$\begin{align}f(\om_n^k)&=f_e(\om_n^{2k}) + \om_n^k f_o(\om_n^{2k})\\&=f_e((\om_n^k)^2) + \om_n^kf_o((\om_n^k)^2)\\&=f_e(\om_m^k)+\om_n^kf_o(\om_m^k)\end{align}$$
+$$
+\begin{align}
+f(\om_n^k) &= f_e(\om_n^{2k}) + \om_n^k f_o(\om_n^{2k}) \\
+           &= f_e((\om_n^k)^2) + \om_n^kf_o((\om_n^k)^2) \\
+           &= f_e(\om_m^k)+\om_n^kf_o(\om_m^k)
+\end{align}
+$$
 This formula works for all $0 \leq k < n$, but if we restrict $k$ to the range $0 \leq k < m$ and consider both $k$ and $k + m$, we find a very special pattern:
-$$\begin{align}f(\om_n^k)&=f_e(\om_m^k)+\om_n^kf_o(\om_m^k)\end{align}$$
+$$ f(\om_n^k) = f_e(\om_m^k)+\om_n^kf_o(\om_m^k) $$
 as expected, but
-$$\begin{align}f(\om_n^{k + m})&=f_e(\om_n^{k + m})+\om_n^{k + m}f_o(\om_m^{k + m})\\&=f_e(\om_m^k\om_m^m) + \om_n^n \om_n^k f_o(\om_m^k\om_m^m)\\&=f_e(\om_m^k) - \om_n^k f_o(\om_m^k)\end{align}$$
+$$
+\begin{align}
+f(\om_n^{k + m}) &= f_e(\om_n^{k + m})+\om_n^{k + m}f_o(\om_m^{k + m}) \\
+                 &= f_e(\om_m^k\om_m^m) + \om_n^n \om_n^k f_o(\om_m^k\om_m^m) \\
+                 &= f_e(\om_m^k) - \om_n^k f_o(\om_m^k)
+\end{align}
+$$
 To recap, we've found that
 #block Sampling Reduction Formula
 If $n$ is an even number, $m = \frac n2$, and
-$$\begin{align}f(x)&= a_0 + a_1x + a_2x^2+ \dots + a_{n-1}x^{n-1}\\f_e(x)&=a_0 + a_2x + a_4x^2 + \dots+ a_{n -2}x^{m-1}\\f_o(x)&=a_1+a_3x + a_5x^2 + \dots + a_{n-1}x^{m-1}\end{align}$$
+$$
+\begin{align}
+f(x)   &= a_0 + a_1x + a_2x^2+ \dots + a_{n-1}x^{n-1} \\
+f_e(x) &= a_0 + a_2x + a_4x^2 + \dots+ a_{n -2}x^{m-1} \\
+f_o(x) &= a_1+a_3x + a_5x^2 + \dots + a_{n-1}x^{m-1}
+\end{align}
+$$
 and $\om_n$ is a primitive $n$-th root of unity, then for all $0 \leq k < m$,
-$$\begin{align}f(\om_n^k) &= f_e(\om^k_m) + \om^k_n f_o(\om^k_m)\\f(\om_n^{k+m})&=f_e(\om^k_m) - \om^k_nf_o(\om^k_m)\end{align}$$
+$$
+\begin{align}
+f(\om_n^k)     &= f_e(\om^k_m) + \om^k_n f_o(\om^k_m) \\
+f(\om_n^{k+m}) &= f_e(\om^k_m) - \om^k_nf_o(\om^k_m)
+\end{align}
+$$
 #end block
 This is an extremely important formula. This means that if we need to sample $f(x)$ at $\om_{2n}^0, \om_{2n}^1, \dots \om_{2n}^{2n-1}$, we can reduce this into the problem of sampling $f_e(x)$ and $f_o(x)$ at $\om_n^0, \om_n^1, \dots \om_n^{n-1}$ with a cost of $O(n)$ steps.
 
@@ -155,18 +220,23 @@ Eventually, after $k$ iterations of this, with each iteration incurring a cost o
 
 #block Sampling Algorithm
 Let $n$ be a power of $2$, $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ be a polynomial of degree $n - 1$ and $\om_{n}$ be a primitive $n$-th root of unity.
-<br/><br/>
+
 To calculate $n$ samples $f(\om_n^0), f(\om_n^1), \dots, f(\om_n^{n-1})$:
 <ul>
 	<li>If $n = 1$, then the only sample we need is $f(\om_1^0) = f(1) = a_0$.</li>
 	<li>
 		Otherwise, let $m = \frac n2$ and $$\begin{align}f_e(x) &= a_0 + a_2x + a_4x^2 + \dots + a_{n-1}x^{m-1}\\f_o(x)&=a_1+a_3x+a_5x^2+\dots+a_nx^{m-1}\end{align}$$
 		We recursively apply this algorithm on $f_e(x)$ and $f_o(x)$ to find $f_e(\om_{m}^0), f_e(\om_{m}^1), \dots, f_e(\om_{m}^{m - 1})$ and $f_o(\om_{m}^0), f_o(\om_{m}^1), \dots, f_o(\om_{m}^{m - 1})$.
-		<br/>
+
 		From these samples, we can calculuate $f(\om_n^0), f(\om_n^1), \dots, f(\om_n^{n-1})$:
-		<br/>
+
 		For all $0 \leq k < m$,
-		$$\begin{align}f(\om_n^k) &= f_e(\om^k_m) + \om^kf_o(\om^k_m)\\f(\om_n^{k+m})&=f_e(\om^k_m) - \om^kf_o(\om^k_m)\end{align}$$
+		$$
+			\begin{align}
+			f(\om_n^k)     &= f_e(\om^k_m) + \om^kf_o(\om^k_m) \\
+			f(\om_n^{k+m}) &= f_e(\om^k_m) - \om^kf_o(\om^k_m)
+			\end{align}
+		$$
 	</li>
 </ul>
 #end block
@@ -188,7 +258,14 @@ Let $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ be a polynomial of degree $n - 1$.
 Given $n$ sample points $s_0, \dots, s_{n-1}$ and $n$ samples $v_0, \dots, v_{n-1}$ where it is known that $f(s_0) = v_0, f(s_1) = v_1, \dots, f(s_{n-1}) = v_{n-1}$, we wish to find $a_0, \dots a_{n-1}$.
 <br/><br/>
 In other words, we want to solve the system of equations
-$$ \begin{align} a_0 + a_1s_0 + a_2s_0^2 + \dots + a_{n-1}s_0^{n-1} &= v_0 \\ a_1 + a_1s_1 + a_2s_1^2 + \dots + a_{n-1}s_1^{n-1} &= v_1 \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\ a_1 + a_1s_{n-1} + a_2s_{n-1}^2 + \dots + a_{n-1}s_{n-1}^{n-1} &= v_{n-1} \\ \end{align} $$
+$$
+\begin{align}
+a_0 + a_1s_0 + a_2s_0^2 + \dots + a_{n-1}s_0^{n-1} &= v_0 \\
+a_1 + a_1s_1 + a_2s_1^2 + \dots + a_{n-1}s_1^{n-1} &= v_1 \\
+			\vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\
+a_1 + a_1s_{n-1} + a_2s_{n-1}^2 + \dots + a_{n-1}s_{n-1}^{n-1} &= v_{n-1} \\
+\end{align}
+$$
 #end block
 
 We note that by Uniqueness of Interpolation, that we're guaranteed exactly one possible value for $a_0, \dots, a_n$.
@@ -197,9 +274,12 @@ Let's prove an interesting property about combining interpolating problems:
 #block Theorem - Additivity of Interpolation
 Let $f(x)$ and $g(x)$ be polynomials of degree $n - 1$.
 Suppose we are given sample points $s_0, \dots, s_n$ and we know that:
-$$u_0 = f(s_0), u_1 = f(s_1), \dots, u_{n-1} = f(s_{n-1}) \\ v_0 = f(s_0), v_1 = f(s_1), \dots, v_{n-1} = f(s_{n-1})$$
+$$
+u_0 = f(s_0), u_1 = f(s_1), \dots, u_{n-1} = f(s_{n-1}) \\
+v_0 = f(s_0), v_1 = f(s_1), \dots, v_{n-1} = f(s_{n-1})
+$$
 and we've found $f(x)$ and $g(x)$.
-<br/><br/>
+
 Then the polynomial $h(x)$ that interpolates the samples $(u_0 + v_0), (u_1 + v_1), \dots, (u_{n-1}, v_{n-1})$ is $h(x) = f(x) + g(x)$.
 #end block
 
@@ -210,43 +290,106 @@ This theorem seems trivial but it lets us break down the problem into easier sub
 If we can solve the interpolation problem for all of the partial sample sets, we'll can just add the interpolating polynomials together to get the interpolation of $v_0, \dots, v_n$.
 
 Recall that we've picked $s_0, \dots, s_{n-1}$ to be $\om_n^0, \dots, \om_n^{n-1}$ where $\om_n$ is a primitive $n$-th root of unity. Now let's try to interpolate the $0$-th partial sample set, that is, we want to solve the system
-$$ \begin{align} a_0 + a_1 + a_2 + \dots + a_{n-1} &= v_0 \\ a_0 + a_1\om_n^1 + a_2\om_n^2 + \dots + a_{n-1}\om_n^{n-1} &= 0 \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\ a_0 + a_1\om_n^{n-1} + a_2\om_n^{2(n-1)} + \dots + a_{n-1}\om_n^{(n-1)^2} &= 0 \\ \end{align} $$
+$$
+\begin{align}
+a_0 + a_1 + a_2 + \dots + a_{n-1}                                         &= v_0 \\
+a_0 + a_1\om_n^1 + a_2\om_n^2 + \dots + a_{n-1}\om_n^{n-1}                &= 0 \\
+			            \vdots\phantom{+$a_{n-1}s_1^{n-1}$}               & \\
+a_0 + a_1\om_n^{n-1} + a_2\om_n^{2(n-1)} + \dots + a_{n-1}\om_n^{(n-1)^2} &= 0 \\
+\end{align}
+$$
 
 This doesn't make the problem any easier, but if we try something silly, we'll see that everything works out. If we set $a_0 = a_1 = a_2 = \dots = a_{n-1} = \frac 1n v_0$, then we see that indeed $a_0 + a_1 + a_2 + \dots + a_{n-1} = \frac 1nv_0 + \dots + \frac 1nv_0 = \frac 1nv_0(n) = v_0$.
 
 But do we satisfy the other equations? Well for $0 < k < n$, we have
-$$\begin{align} &\phantom{=.} a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om_n^{(n-1)k} \\ &= \tfrac 1nv_0 + \tfrac 1nv_0\om_n^k + \tfrac 1nv_0\om_n^{2k} + \dots + \tfrac 1nv_0\om_n^{(n-1)k} \\ &= \tfrac 1nv_0 \left(1 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} \right)\end{align}$$
+$$
+\begin{align}
+&\phantom{=.}
+   a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om_n^{(n-1)k} \\
+&= \tfrac 1nv_0 + \tfrac 1nv_0\om_n^k + \tfrac 1nv_0\om_n^{2k} + \dots + \tfrac 1nv_0\om_n^{(n-1)k} \\
+&= \tfrac 1nv_0 \left(1 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} \right)
+\end{align}
+$$
 
 By the fourth primitive root of unity property, for all $0 < k < n$, $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$, so
 
-$$\begin{align} &\phantom{=.} \tfrac 1nv_0 \left(1 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k}\right) \\ &= \tfrac 1nv_0 (0) \\ &= 0 \end{align}$$
+$$
+\begin{align}
+&\phantom{=.} 
+   tfrac 1nv_0 \left(1 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k}\right) \\
+&= \tfrac 1nv_0 (0) \\
+&= 0
+\end{align}
+$$
 
 Now that we've solved the $0$-th partial sample set, we can also solve the $k$-th partial sample set for $0 < k < n$. This time, we want to solve the system
-$$ \begin{align} a_0 + a_1 + a_2 + \dots + a_{n-1} &= 0 \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om_n^{(n-1)k} &= v_k \\ \vdots\phantom{+$a_{n-1}s_1^{n-1}$}& \\ a_0 + a_1\om_n^{n-1} + a_2\om_n^{2(n-1)} + \dots + a_{n-1}\om_n^{(n-1)^2} &= 0 \\ \end{align} $$
+$$
+\begin{align}
+a_0 + a_1 + a_2 + \dots + a_{n-1}                                         &= 0 \\
+                         \vdots\phantom{+$a_{n-1}s_1^{n-1}$}              & \\
+a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om_n^{(n-1)k}          &= v_k \\
+                         \vdots\phantom{+$a_{n-1}s_1^{n-1}$}              & \\
+a_0 + a_1\om_n^{n-1} + a_2\om_n^{2(n-1)} + \dots + a_{n-1}\om_n^{(n-1)^2} &= 0 \\
+\end{align}
+$$
 
 We can do something similar, but instead of setting $a_0 = \dots = a_n = \frac 1nv_0$, we'll set
 $$\begin{align}a_0 &= \tfrac 1nv_k \\a_1 &= \tfrac 1nv_k\om_n^{-k}\\ a_2 &= \tfrac 1nv_k\om_n^{-2k}\\ &\phantom{/}\vdots\\ a_{n-1} &= \tfrac 1nv_k \om_n^{-(n-1)k}\end{align}$$
 
 That way, we have
-$$ \begin{align} &\phantom{=.}a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om^{(n-1)k}\\ &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k}\om_n^k + \tfrac 1nv_k\om_n^{-2k}\om_n^{2k}+ \dots+ \tfrac 1nv_k \om_n^{-(n-1)k}\om_n^{-(n-1)k} \\ &= \tfrac 1nv_k\left( 1 + \om_n^{-k}\om_n^k + \om_n^{-2k}\om_n^{2k} + \dots + \om_n^{-(n-1)k}\om_n^{(n-1)k}\right)\\&=\tfrac 1nv_k\left(1+1+1+\dots+1\right)\\&=\tfrac 1nv_k(n) \\&= v_k\end{align} $$
+$$
+\begin{align}
+&\phantom{=.}
+   a_0 + a_1\om_n^k + a_2\om_n^{2k} + \dots + a_{n-1}\om^{(n-1)k} \\
+&= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k}\om_n^k + \tfrac 1nv_k\om_n^{-2k}\om_n^{2k}+ \dots+ \tfrac 1nv_k \om_n^{-(n-1)k}\om_n^{-(n-1)k} \\
+&= \tfrac 1nv_k\left( 1 + \om_n^{-k}\om_n^k + \om_n^{-2k}\om_n^{2k} + \dots + \om_n^{-(n-1)k}\om_n^{(n-1)k}\right)\\
+&= \tfrac 1nv_k\left(1+1+1+\dots+1\right) \\
+&= \tfrac 1nv_k(n) \\
+&= v_k
+\end{align}
+$$
 
 And see once again for any $i \neq k$,
-$$\begin{align} &\phantom{=.} a_0 + a_1\om_n^i + a_2\om_n^{2i} + \dots + a_{n-1}\om_n^{(n-1)i}\\ &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k}\om_n^i + \tfrac 1nv_k\om_n^{-2k}\om_n^{2i} + \dots + a_{n-1}\om_n^{-(n-1)k}\om_n^{(n-1)i}\\ &= \tfrac 1nv_k \left(1 + \om_n^{-k}\om_n^i + \om_n^{-2k}\om_n^{2i} + \dots + \om_n^{-(n-1)k}\om_n^{(n-1)i}\right)\\ &= \tfrac 1nv_k \left(1 + \om_n^{i-k} + \om_n^{2(i-k)} + \dots + \om_n^{(n-1)(i-k)} \right) \end{align}$$
+$$
+\begin{align}
+&\phantom{=.}
+   a_0 + a_1\om_n^i + a_2\om_n^{2i} + \dots + a_{n-1}\om_n^{(n-1)i} \\
+&= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k}\om_n^i + \tfrac 1nv_k\om_n^{-2k}\om_n^{2i} + \dots + a_{n-1}\om_n^{-(n-1)k}\om_n^{(n-1)i} \\
+&= \tfrac 1nv_k \left(1 + \om_n^{-k}\om_n^i + \om_n^{-2k}\om_n^{2i} + \dots + \om_n^{-(n-1)k}\om_n^{(n-1)i}\right) \\
+&= \tfrac 1nv_k \left(1 + \om_n^{i-k} + \om_n^{2(i-k)} + \dots + \om_n^{(n-1)(i-k)} \right)
+\end{align}
+$$
 
 Let $j = i - k$, we have
-$$\tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right)$$
+$$ \tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right) $$
 
 We know that $0 \leq i, k < n$ and $i \neq k$, and there are 2 cases:
 <ol>
 	<li>
 		If $i > k$, then $0 < i - k < n$ or $0 < j < n$. Therefore,
-		$$\begin{align}&\phantom{=.}\tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right)\\&=\tfrac 1nv_k (0)\\&=0\end{align}$$
+		$$
+		\begin{align}
+		&\phantom{=.}
+		   \tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right) \\
+		&= \tfrac 1nv_k (0) \\
+		&= 0
+		\end{align}
+		$$
 		as required.
 	</li>
 	<li>
 		If $i < k$, then $-n < i - k < 0$ or $-n < j < 0$. Adding $n$ to everything, we get $0 < j + n < n$.
 		As a side note, we note that for any number $c$, $\om_n^{cn} = (\om_n^n)^c = 1^c = 1$.
-		$$\begin{align}&\phantom{=.}\tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right)\\&=\tfrac 1nv_k \left(1 + \om_n^{j}\om_n^n + \om_n^{2j}\om_n^{2n} + \dots + \om_n^{(n-1)j}\om_n^{(n-1)n}\right)\\&=\tfrac 1nv_k \left(1 + \om_n^{j+n} + \om_n^{2(j + n)} +\dots+\om_n^{(n-1)(j + n)}\right)\\&=\tfrac 1nv_k (0)\\&=0\end{align}$$
+		$$
+		\begin{align}
+		&\phantom{=.}
+		   \tfrac 1nv_k \left(1 + \om_n^{j} + \om_n^{2j} + \dots + \om_n^{(n-1)j} \right) \\
+		&= \tfrac 1nv_k \left(1 + \om_n^{j}\om_n^n + \om_n^{2j}\om_n^{2n} + \dots + \om_n^{(n-1)j}\om_n^{(n-1)n}\right) \\
+		&= \tfrac 1nv_k \left(1 + \om_n^{j+n} + \om_n^{2(j + n)} +\dots+\om_n^{(n-1)(j + n)}\right) \\
+		&= \tfrac 1nv_k (0) \\
+		&= 0
+		\end{align}
+		$$
 		as required.
 	</li>
 </ol>
@@ -258,26 +401,48 @@ Let $\om_n$ be a primitive $n$-th root of unity.
 Let $v_0, \dots, v_{n-1}$ $n$ samples, with $v_k = f(\om_n^k)$ for all $0 \leq k < n$.
 <br/>
 The solution to the $k$-th partial sample set is $a_i = \frac 1nv_k \om_n^{-ik}$ for all $0 \leq i < n$, that is
-$$\begin{align} f(x) &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k} + \tfrac 1nv_k\om_n^{-2k} + \dots + \tfrac 1nv_k\om_n^{-(n-1)k}\\ &= \tfrac 1nv_k \left(1 + \om_n^{-k} + \om_n^{-2k} + \dots + \om_n^{-(n-1)k} \right) \end{align}$$
+$$
+\begin{align}
+f(x) &= \tfrac 1nv_k + \tfrac 1nv_k\om_n^{-k} + \tfrac 1nv_k\om_n^{-2k} + \dots + \tfrac 1nv_k\om_n^{-(n-1)k} \\
+     &= \tfrac 1nv_k \left(1 + \om_n^{-k} + \om_n^{-2k} + \dots + \om_n^{-(n-1)k} \right)
+\end{align}
+$$
 By the Additivity of Interpolation, the solution to $a_0, \dots, a_{n-1}$ is the sum of interpolations of all $n$ partial sample sets, that is
-$$\begin{align}
-a_0 &= \tfrac1n v_0 + \tfrac1n v_1 + \tfrac1n v_2 + \dots + \tfrac1n v_{n-1} \\
-a_1 &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-k} + \tfrac1n v_2\om_n^{-2k} + \dots + \tfrac1n v_{n-1}\om_n^{-(n-1)k} \\
-a_2 &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-2k} + \tfrac1n v_2\om_n^{-4k} + \dots + \tfrac1n v_{n-1}\om_n^{-2(n-1)k} \\
-&\phantom{XXXXXXXXXXXX}\vdots\\
+$$
+\begin{align}
+a_0     &= \tfrac1n v_0 + \tfrac1n v_1 + \tfrac1n v_2 + \dots + \tfrac1n v_{n-1} \\
+a_1     &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-k} + \tfrac1n v_2\om_n^{-2k} + \dots + \tfrac1n v_{n-1}\om_n^{-(n-1)k} \\
+a_2     &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-2k} + \tfrac1n v_2\om_n^{-4k} + \dots + \tfrac1n v_{n-1}\om_n^{-2(n-1)k} \\
+        &                              \phantom{XXXXXXXXXXXX}\vdots \\
 a_{n-1} &= \tfrac1n v_0 + \tfrac1n v_1\om_n^{-(n-1)k} + \tfrac1n v_2\om_n^{-2(n-1)k} + \dots + \tfrac1n v_{n-1}\om_n^{-(n-1)^2k} \\
-\end{align}$$
+\end{align}
+$$
 
 Pulling out $\frac 1n$ from each term, we get
 
-$$\begin{align} a_0 &= \tfrac 1n \left( v_0 +  v_1 +  v_2 + \dots +  v_{n-1} \right)\\ a_1 &= \tfrac 1n \left( v_0 +  v_1\om_n^{-k} +  v_2\om_n^{-2k} + \dots +  v_{n-1}\om_n^{-(n-1)k} \right)\\ a_2 &= \tfrac 1n \left( v_0 +  v_1\om_n^{-2k} +  v_2\om_n^{-4k} + \dots +  v_{n-1}\om_n^{-2(n-1)k} \right)\\ &\phantom{XXXXXXXXXXXX}\vdots\\ a_{n-1} &= \tfrac 1n \left( v_0 +  v_1\om_n^{-(n-1)k} +  v_2\om_n^{-2(n-1)k} + \dots +  v_{n-1}\om_n^{-(n-1)^2k} \right)\\ \end{align}$$
+$$
+\begin{align}
+a_0     &= \tfrac 1n \left( v_0 +  v_1 +  v_2 + \dots +  v_{n-1} \right) \\
+a_1     &= \tfrac 1n \left( v_0 +  v_1\om_n^{-k} +  v_2\om_n^{-2k} + \dots +  v_{n-1}\om_n^{-(n-1)k} \right) \\
+a_2     &= \tfrac 1n \left( v_0 +  v_1\om_n^{-2k} +  v_2\om_n^{-4k} + \dots +  v_{n-1}\om_n^{-2(n-1)k} \right) \\
+        &                           \phantom{XXXXXXXXXXXX}\vdots \\
+a_{n-1} &= \tfrac 1n \left( v_0 +  v_1\om_n^{-(n-1)k} +  v_2\om_n^{-2(n-1)k} + \dots +  v_{n-1}\om_n^{-(n-1)^2k} \right)\\
+\end{align}
+$$
 #end block
 
 Ignoring the factor of $\frac 1n$, this equation looks an awful lot like the sampling problem.
 #end section
 
 #section Interpolating Quickly
+We can now use the techniques we used to sample quickly to interpolate quickly. Let's pretend the factor of $\frac 1n$ doesn't exist. Then from the previous section, we found that for all $0 \leq k < n$,
+$$ a_{k} = v_0 + v_1\om_n^{-k} + v_2\om_n^{-2k} + \dots + v_{n-1}\om_{n-1}^{-(n-1)k} $$
+This is almost exactly what we wanted to compute when sampling, except $a_k$ and $v_k$ are swapped and the exponents are negative in this version. In fact, if we define a special polynomial
+$$ v(x) = v_0 + v_1x + v_2x^2 + \dots + v_{n-1}x^{n-1} $$
 
+Then we notice that $a_k = f(\om_n^{-k})$, and we want to find $a_k$ for all $0 \leq k < n$, which is a sampling problem.
+
+Using the strategies from sampling quickly, we'll once again define
 #end section
+// TODO normalize phantoms to X's for readability
 #end main
-
