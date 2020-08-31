@@ -1,0 +1,67 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Proof of Theorem 3</title>
+		<link rel="stylesheet" href="prism.css">
+		<link rel="stylesheet" href="../style.css">
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				tex2jax: {
+					inlineMath: [['$','$']],
+					displayMath: [['$$','$$']],
+					processEscapes: true
+				}
+			});
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+		<script src="prism.js"></script>
+	</head>
+
+	<body>
+		<div id="title">Proof of Theorem 3</div>
+
+		<div id="preamble">
+				$$
+				\newcommand{\om}{\omega}
+				$$
+		</div>
+
+		<div id="main">
+
+			<div id="toc0" class="section">
+				<div class="heading">$\mathbf{e^{i\frac{2\pi}n}}$ is a Primitive $\mathbf n$-th Root of Unity</div>
+				<div class="subsection">
+
+					<p>
+						First, we prove that $e^{i\frac{2\pi}n}$ is an $n$-th root of unity by checking $\left(e^{i\frac{2\pi}n}\right)^n = 1$
+					</p>
+
+					<p>
+						$\left(e^{i\frac{2\pi}n}\right)^n = e^{i\frac{2\pi}n n} = e^{i2\pi} = \cos(2\pi) + i\sin(2\pi) = 1 + i(0) = 1$
+					</p>
+
+					<p>
+						Second, we prove that $e^{i\frac{2\pi}n}$ is a primitive $n$-th root of unity by showing that for all $0 < k < n$, $\left(e^{i\frac{2\pi}n}\right)^k \neq 1$.
+					</p>
+
+					<p>
+						For all $0 < k < n$, we have
+					</p>
+
+					<p>
+						$\left(e^{i\frac{2\pi}n}\right)^k = e^{i\frac{2k\pi}n} = \cos\left(\frac{2k\pi}n\right) + i\sin\left(\frac{2k\pi}n\right)$
+					</p>
+
+					<p>
+						Since $0 < k < n$, we have $0 < \frac{2k\pi}n < 2\pi$, and we know from trignometry that for this range, $\cos\left(\frac{2k\pi}n\right) \neq 1$ and $\sin\left(\frac{2k\pi}n\right) \neq 0$, so
+					</p>
+
+					<p>
+						$\left(e^{i\frac{2\pi}n}\right)^k = \cos\left(\frac{2k\pi}n\right) + i\sin\left(\frac{2k\pi}n\right) \neq 1$.
+					</p>
+				</div>
+			</div>
+
+		</div>
+	</body>
+</html>

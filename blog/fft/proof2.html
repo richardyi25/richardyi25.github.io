@@ -1,0 +1,167 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Proof of Theorem 2</title>
+		<link rel="stylesheet" href="prism.css">
+		<link rel="stylesheet" href="../style.css">
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				tex2jax: {
+					inlineMath: [['$','$']],
+					displayMath: [['$$','$$']],
+					processEscapes: true
+				}
+			});
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+		<script src="prism.js"></script>
+	</head>
+
+	<body>
+		<div id="title">Proof of Theorem 2</div>
+
+		<div id="preamble">
+				$$
+				\newcommand{\om}{\omega}
+				$$
+		</div>
+
+		<div id="main">
+
+			<div id="toc0" class="section">
+				<div class="heading">Theorem 2.1</div>
+				<div class="subsection">
+
+					<div class="block">
+						<div class="block-heading">Statement</div>
+
+					<p>
+						Let $n$ be an even number, $\om_n$ be a primitive $n$-th root of unity, and $m = \frac n2$.
+					</p>
+
+<b>Theorem 2.1:</b> For all $0 < k < n$, the values of $\om_n^k$ are distinct roots of unity.
+					</div>
+
+					<p>
+						First, we prove that the values of $\om_n^k$ for $0 < k < n$ are $n$-th roots of unity. By definition, since $(\om_n^k)^n = \om_n^{kn} = (\om_n^n)^k = 1^k = 1$, $\om_n^k$ must be a root of unity for any $0 < k < n$.
+					</p>
+
+					<p>
+						Next we prove that they are all distinct roots of unity. Suppose the statement isn't true: that there exist $k_1$ and $k_2$ such that $0 < k_1 < k_2 < n$ and $\om_m^{k_1} = \om_m^{k_2}$. If we divide both sides by $\om_n^{k_1}$, we then get $\om_n^{k_2 - k_1} = 1$. But since $0 < k_1 < k_2 < n$, we have $0 < k_2 - k_1 < n$, and by the definition of primitivity, $\om_n^{k_2 - k_1}$ can't be $1$. We reach a contradiction, so the values of $\om_n^k$ must indeed be distinct.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc1" class="section">
+				<div class="heading">Theorem 2.2</div>
+				<div class="subsection">
+
+					<div class="block">
+						<div class="block-heading">Statement</div>
+
+					<p>
+						Let $n$ be an even number, $\om_n$ be a primitive $n$-th root of unity, and $m = \frac n2$.
+					</p>
+
+					<p>
+						$\om_n^m = -1$.
+					</p>
+					</div>
+
+					<p>
+						Since $(\om_n^m)^2 = \om_n^{2m} = \om_n^n = 1$, we have $(\om_n^m)^2 - 1 = 0 \implies (\om_n^m - 1)(\om_n^m + 1) = 0$.
+					</p>
+
+					<p>
+						This means either at least one of $\om_n^m - 1 = 0$ and $\om_n^m + 1 = 0$ is true. $\om_n^m - 1 = 0 \implies \om_n^m = 1$ can't be true by the primitivity of $\om_n$. Therefore, $\om_n^m + 1 = 0$ must be true and $\om_n^m = -1$.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc2" class="section">
+				<div class="heading">Theorem 2.3</div>
+				<div class="subsection">
+
+					<div class="block">
+						<div class="block-heading">Statement</div>
+
+					<p>
+						Let $n$ be an even number, $\om_n$ be a primitive $n$-th root of unity, and $m = \frac n2$.
+					</p>
+
+<ol>
+
+<li>$\om_n^2$ is an $m$-th root of unity. Let's call it $\om_m$.</li>
+
+<li>For all $0 < k < n$, $(\om_n^k)^2 = \om_m^k$</li>
+
+<li>For all $0 < k < n$, $(\om_n^{k + m})^2 = \om_m^k$</li>
+
+</ol>
+					</div>
+
+<div class="subheading">Part 1</div>
+
+					<p>
+						We use the definitions to prove that $\om_n^2$ is a primitive $m$-th root of unity. $(\om_n^2)^m = \om_n^{2m} = \om_n^n = 1$, so $\om_n^2$ is an $m$-th root of unity. Also, for all $0 < k < m$, $(\om_n^2)^k = \om_n^{2k}$. Since $\om_n$ is prmitive and $k < m \implies 2k < n$, $\om_n^{2k} \neq 1$ by definition.
+					</p>
+
+<div class="subheading">Part 2</div>
+
+					<p>
+						$(\om_n^k)^2 = \om_n^{2k} = (\om_n^2)^k = (\om_m)^k = \om_m^k$.
+					</p>
+
+<div class="subheading">Part 3</div>
+
+					<p>
+						$(\om_n^{k + m})^2 = \om_n^{2(k + m)} = \om_n^{2k + 2m} = (\om_n^{2k})(\om_n^{2m}) = (\om_n^k)^2 (\om_n^n) = (\om_m^k)(1) = \om_m^k$.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc3" class="section">
+				<div class="heading">Theorem 2.4</div>
+				<div class="subsection">
+
+					<div class="block">
+						<div class="block-heading">Statement</div>
+
+					<p>
+						Let $n$ be an even number, $\om_n$ be a primitive $n$-th root of unity, and $m = \frac n2$.
+					</p>
+
+					<p>
+						For all $0 < k < n$, $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$.
+					</p>
+					</div>
+
+					<p>
+						Let $c$ be the value of the sum $\om_n^0 + \om_n^k+ \dots + \om_n^{(n-1)k}$. We want to prove that $c=0$.
+					</p>
+
+					<p>
+						$$\begin{align}c &= \om_n^0 + \om_n^k+ \dots + \om_n^{(n-1)k}\end{align}$$
+					</p>
+
+					<p>
+						Let's mutiply both sides by $1 - \om_n^k$:
+					</p>
+
+					<p>
+						$$\require{cancel}\begin{align}c(1 -\om_n^k) &= (\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})(1-\om_n^k) \\c(1-\om_n^k)  &= (\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k})-\om_n^k(\om_n^0 + \om_n^k + \dots + \om_n^{(n-1)k}) \\c(1-\om_n^k)  &= \om_n^0+\om_n^k+\dots+\om_n^{(n-1)k}-\om_n^k-\om_n^{2k}-\dots-\om_n^{nk} \\c(1-\om_n^k)  &= \om_n^0+\cancel{\om_n^k}+\dots+\cancel{\om_n^{(n-1)k}}-\cancel{\om_n^k}-\cancel{\om_n^{2k}}-\dots-\om_n^{nk} \\c(1-\om_n^k)  &= \om_n^0-\om_n^{nk} \\c(1-\om_n^k)  &= 1-(\om_n^{n})^k \\c(1-\om_n^k)  &= 1-(1)^k \\c(1-\om_n^k)  &= 0\end{align}$$
+					</p>
+
+					<p>
+						Since $c(1-\om_n^k) = 0$, at least one of $c$ and $(1-\om_n^k)$ must be $0$.
+					</p>
+
+					<p>
+						But since $0 < k < n$, by definition we have $\om_n^k \neq 1 \implies 1 - \om_n^k \neq 0$, so $c$ must be $0$.
+					</p>
+				</div>
+			</div>
+
+		</div>
+	</body>
+</html>

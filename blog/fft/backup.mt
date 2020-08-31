@@ -13,13 +13,11 @@ $$
 #main
 
 #section Pre-Requisite Knowledge
-This article is intended for people who are familiar with the concept of time complexity and have a high school level knowledge of trignometry and polynomials. Knowledge of complex numbers and number theory will help but is not neccesary.
+This article is intended for people who are familiar with time complexity and have a high school level knowledge of trignometry and polynomials.
 #end section
 
 #section Introduction
-The Fourier Transform is concept that has a wide variety of interpretations and variations across many fields of study including mathematics, physics, and engineering. Truly grasping this concept usually requires a deep dive into its mathematical beauty.
-
-Thankfully, in competitive programming, we can skip over most of this. In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(n^2)$ to $O(n \log n)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
+In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(n^2)$ to $O(n \log n)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
 #end section
 
 #section Multiplying Polynomials
@@ -457,143 +455,108 @@ TODO
 #end section
 
 #section Complex Numbers
-Now that we know how to sample and interpolate quickly using primitive $n$-th roots of unity, we need to find a number system where these primitive roots of unity exist.
+Now that we know how to sample and interpolate quickly using $n$-th roots of unity, we need to find a number system where these roots of unity exist.
 
-For some given $n$, we want to find some $\om_n$ that satisfies $\om_n^n = 1$. This is equivalent to finding the solutions to the polynomial $x^n = 1$. We know from the Fundamental Theorem of Algebra that every polynomial of degree $n$ has exactly $n$ solutions, which is a good sign. We're also hoping that at least one of these solutions gives us a <i>primitive</i> $n$-th root of unity.
+Since for some $n$, we want to find some $\om_n$ that satisfies $\om_n^n = 1$, we can also think of this as solutions to the equation $x^n - 1 = 0$. 
 
-Using the Fundamental Theorem of Algebra on the polynomial $x^4 = 1$, we expect $4$ solutions for $x$, but we know that there are only two possible: $1$ and $-1$, so where are the other solutions?
+The "regular" numbers such as $42$, $-\frac35$, $\sqrt 2$, and $\pi$ are usually collectively called the <i>real</i> numbers.
 
-It turns out the Fundamental Theorem of Algebra only works if we extend the regular numbers. Let's introduce a new number $i$ which is equal to $\sqrt{-1}$. Using regular numbers, the square root of any negative number doesn't exist, but allowing them to exist gives us interesting and useful properties.
+In the real numbers, negative numbers cannot have square roots, and we know that equations like $x^2 + 9 = 0$ and $x^2 - 6x + 34 = 0$ have no solutions. The complex numbers solve this problem by extending the real numbers and introducing the <i>imaginary unit</i> $i = \sqrt{-1}$. A multiple of this imaginary unit (e.g. $5i$, which is the square root of $-25$) is called an <i>imaginary number</i>.
 
-For one, now we have $4$ solutions to the polynomial $x^4 = 1$. The solutions are $1$, $-1$, $i$, and $-i$. To verify this, we first note that since by definition $i = \sqrt{-1}, i^2 = -1$. Now, to verify that $i^4 = 1$, we show:
-$$i^4 = (i^2)^2 = (-1)^2 = 1$$
-Next, we verify that $(-i)^4 = 1$:
-$$(-i)^4 = (-1)^4(i)^4 = (1)(1) = 1$$
-In particular, $i$ is a primitive $4$-th root of unity since for all $0 < k < 4$, $i^k \neq 1$. We can verify these manually: $i^1 = i$, $i^2 = -1$, and $i^3 = (i^2)(i) = -i$. As a bonus, $-i$ is also a primitive $4$-th root of unity.
+If we add a real number and an imaginary number, we get a <i>complex number</i>. Complex numbers come in form of $x + iy$ where $x$ and $y$ are real numbers and $i$ is the imaginary unit.
 
-We can also mix regular numbers with multiples of $i$. For example, we can have the number $5 + 3i$ or $2.5 - \sqrt2 i$. These numbers are called <b>complex numbers</b>. This representation is important since all numbers involving $i$ in any way can be expresseed by $a + bi$ where $a$ and $b$ are regular numbers. For example, $7^{3i} \approx 0.9024 - 0.431i$.
-
-In the complex numbers, we can guarantee $n$ solutions to the polynomial $x^n = 1$. 
-
-For example, the $3$ solutions to $x^3 = 1$ are $1$, $\left(-\frac12 + \frac{\sqrt3}2i\right)$, and $\left(-\frac12 - \frac{\sqrt3}2i\right)$. We can verify that $\left(-\frac12 + \frac{\sqrt3}2i\right)^3 = 1$ by expanding using the Binomial Theorem:
+Now we can solve many more equations. For example, the solutions to $x^2 + 9 = 0$ are $x = 3i$ and $x = -3i$ since
+<table style="margin: 0px auto;"><tr>
+<td style="width: 30%; margin: 0px auto;">
 $$
 \begin{align}
-&\phantom{=|} \left(-\frac12 + \frac{\sqrt3}2i\right)^3 \\ 
-&= \left(-\frac 12\right)^3 + 3\left(-\frac 12\right)^2\left(\frac{\sqrt3}{2}i\right) + 3\left(-\frac 12\right)\left(\frac{\sqrt3}{2}i\right)^2 + \left(\frac{\sqrt3}2i\right)^3 \\
-&= \left(-\frac 12\right)^3  + 3\left(-\frac12\right)^2\left(\frac{\sqrt3}2\right)i +
-3\left(-\frac12\right)\left(\frac{\sqrt3}{2}\right)^2i^2 + \left(\frac{\sqrt3}{2}\right)^3i^3 \\
-&= -\frac 18 + 3\left(\frac14\right)\left(\frac{\sqrt3}2\right)i +
-3\left(-\frac12\right)\left(\frac 34\right)(-1) + \left(\frac{3\sqrt3}{8}\right)(-i) \\
-&= -\frac18 + \frac{3\sqrt3}8i + \frac{9}{8} - \frac{3\sqrt3}8i \\
-&= -\frac18 + \frac98 \\
-&= 1
+&\phantom{=|} (3i)^2 + 9 \\
+&= (3)^2(i)^2 + 9 \\
+&= (9)(-1) + 9 \\
+&= -9 + 9 \\
+&= 0 \\
 \end{align}
 $$
+</td>
+<td style="width: 30%; margin: 0px auto; text-align: center;">
+and
+</td>
+<td style="width: 30%; margin: 0px auto;">
+$$
+\begin{align}
+&\phantom{=|} (-3i)^2 + 9 \\
+&= (-1)^2(3)^2(i)^2 + 9 \\
+&= (1)(9)(-1) + 9 \\
+&= -9 + 9 \\
+&= 0 \\
+\end{align}
+$$
+</td>
+</tr></table>
 
-The verification that $\left(-\frac12 - \frac{\sqrt3}2i\right)^3 = 1$ works pretty similarly. Also, both $-\frac12 + \frac{\sqrt3}2i$ and $-\frac12 - \frac{\sqrt3}2i$ are primitive third roots of unity.
+The solutions to $x^2 - 6x + 34$ are $x = 3 + 5i$ and $x = 3 - 5i$ since
+<table style="margin: 0px auto;"><tr>
+<td style="width: 20%; margin: 0px auto;">
+$$
+\begin{align}
+&\phantom{=|} (3 + 5i)^2 - 6(3 + 5i) + 34 \\
+&= 3^2 + 2(3)(5i) + (5i)^2 - (18 + 30i) + 34 \\
+&= 9 + 30i + (5)^2(i)^2 - 18 - 30i + 34 \\
+&= 9 + 30i + (25)(-1) - 18 - 30i + 34 \\
+&= 0
+\end{align}
+$$
+</td>
+<td style="width: 10%; margin: 0px auto; text-align: center;">
+and
+</td>
+<td style="width: 20%; margin: 0px auto;">
+$$
+\begin{align}
+&\phantom{=|} (3 - 5i)^2 - 6(3 - 5i) + 34 \\
+&= 3^2 - 2(3)(5i) + (5i)^2 - (18 - 30i) + 34 \\
+&= 9 - 30i + (5)^2(i)^2 - 18 + 30i + 34 \\
+&= 9 - 30i + (25)(-1) - 18 + 30i + 34 \\
+&= 0
+\end{align}
+$$
+</td>
+</tr></table>
 
-In general, for all $n > 0$, we can find $n$ solutions to $x^n = 1$ and at least one of the solutions is a primitive $n$-th root of unity. To find the solutions and the primitive $n$-th root of unity, we can use the following theorem:
+If we plot the real numbers on a number line, centered at $0$ and going off into infinity on the left and right, we can plot the complex numbers by adding a second line at 90 degrees to the number line, intersecting at $0$. This line goes off into infinity to the top and bottom and is centered at $0$ as well. We can then think of complex numbers as coordinate points on a 2D plane where the number $x + iy$ can be thought of as the coordinate point $(x, y)$.
 
-#block Theorem 4 - Complex Roots of Unity
-For all integers $n > 0$, the solutions to the polynomial $x^n = 1$ are
+We're particularly interested in one mathematical result:
 
-$$\cos \theta + i \sin\theta $$ 
+#block Euler's Formula
+Let $(x, y)$ be a point that has a distance $1$ from $(0, 0)$ and makes an angle $\theta$ (in radians) from the standard position (counter-clockwise from the positive $x$-axis).
 
-For all angles $\theta$ (in radians)
-$$0, \frac{2\pi}{n}, \frac{4\pi}n, \frac{6\pi}n, \dots, \frac{(n-1)2\pi}n$$
+The complex number $x + iy$ can be computed using $e^{i\theta}$ where $e$ is Euler's constant.
+#end block
 
-In particular, for $\theta = \frac{2\pi}{n}$, ie. the number $\cos\left(\frac{2\pi}{n}\right) + i\sin\left(\frac{2\pi}{n}\right)$ is a primitive $n$-th root of unity.
+You might know from trignometry that a point that has a distance $1$ from $(0, 0)$ and makes an angle $\theta$ from the standard position has the coordiante points $(\cos\theta,\sin\theta)$, which corresponds to the complex number $\cos\theta+i\sin\theta$. This is why Euler's Formula is usually written as
+$$e^{i\theta} = \cos\theta + i\sin\theta$$
 
-<a href="proof4.html">Proof</a>
+Euler's Formula is important to us because it gives us a suitable candidate for a primitive $n$-th root of unity in the complex numbers, namely $e^{i\frac{2\pi}n}$.
+
+#block Theorem 3
+In the complex numbers, $e^{i\frac{2\pi}n}$ is a primitive $n$-th root of unity.
+
+<a href="proof3.html">Proof</a>
 #end block
 #end section
 
-#section The Integers Modulo A Prime Number
-In the previous section, we saw a number system where $n$-th roots of unity exist by extending the regular numbers to include $i$, the square root of $-1$. In this section, we'll instead use <i>the integers modulo $p$</i>, number system with $n$-th roots of unity by restricting the integers.
+#section The Integers Modulo A Prime
+The second system that allows for $n$-th roots of unity that we'll be looking comes from number theory.
 
-To explain this system,  let's look at a real-wrold example. In military the 24 hours in a day are labelled from $0$ to $23$, where Hour $0$ is midnight. If the time right now is Hour $19$, then $9$ hours later, it'll be Hour $4$ (on the next day). We know it'll be Hour $4$ because $19 + 9 = 28$ but there are only $24$ hours in a day, so we subtract $24$ hours and we know that it must be Hour $4$ on the next day. Using similar logic, if it's Hour $3$, then $10$ hours ago, it was $17$ (on the previous day).
+Instead of expanding the real numbers into the complex numbers, this time we're restricting the integers into a smaller, finite collection. We pick a number $n$, and we only allow the integers $0, 1, \dots, n - 2, n - 1$ to exist. If a computation takes us outside of this range, we keep adding or subtracting $n$ until we're back within this range.
 
-The general strategy when adding or subtracting hours together is add them regularly like numbers, then add or subtract multiples of $24$ until the number is between $0$ and $23$ inclusive. The integers modulo $24$ work the exact same way, except we also allow the multiplication of numbers. With multiplication, we also multiply the numbers normally, but we make sure to add or subtract mutiples of $24$ until the number is between $0$ and $23$ inclusive. For example, $6 \times 7 = 18$ since $6 \times 7$ is regularly $42$, but it's not between $0$ and $23$, so we subtract $24$ to get $18$, which is between $0$ and $23$.
+For example, if $n = 13$, then the addition $7 + 10$ would take us to $17$ which is outside of the range $0, 1, \dots, 11, 12$. We then subtract $13$ from $17$ to get $4$. Therefore, in this number system and the choice $n = 13$, $7 + 10 = 4$.
 
-In general for all $n > 0$, the integers modulo $n$ is a number system where we apply the rules above, except with any number $n$. In particular, we do every math operation as usual except if the number isn't between $0$ and $n - 1$ inclusive, we add or subtract a multiple of $n$ so that it is. In particular, if $n$ is a prime number, then we can also call the system "the integers modulo $p$".
-
-The reason why we give a different name for when $n$ is a prime number is because a lot of interesting properties arise. If $n = 7$, let's look at the exponents of each number:
-
-<style> table{ border-collapse: collapse; margin: 0px auto; } table, th, td{ padding: 5px 12px 5px 12px; border: 1px solid black; text-align: center; } .th2 { background-color: #EED3AA; } th { font-weight: normal; background-color: #F8EDDC; } </style>
-
-<table>
-	<tr>
-		<th class="th2"></th>
-		<th class="th2" colspan="7">$b$</td>
-	</tr>
-	<tr>
-		<th class="th2" rowspan="7">$a$</td>
-		<th>$a^b$</td>
-		<th>1</th>
-		<th>2</th>
-		<th>3</th>
-		<th>4</th>
-		<th>5</th>
-		<th>6</th>
-	</tr>
-	<tr>
-		<th>1</th>
-		<td>1</td>
-		<td>1</td>
-		<td>1</td>
-		<td>1</td>
-		<td>1</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<th>2</th>
-		<td>2</td>
-		<td>4</td>
-		<td>1</td>
-		<td>2</td>
-		<td>4</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<th>3</th>
-		<td>3</td>
-		<td>2</td>
-		<td>6</td>
-		<td>4</td>
-		<td>5</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<th>4</th>
-		<td>4</td>
-		<td>2</td>
-		<td>1</td>
-		<td>4</td>
-		<td>2</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<th>5</th>
-		<td>5</td>
-		<td>4</td>
-		<td>6</td>
-		<td>2</td>
-		<td>3</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<th>6</th>
-		<td>6</td>
-		<td>1</td>
-		<td>6</td>
-		<td>1</td>
-		<td>6</td>
-		<td>1</td>
-	</tr>
-</table>
-
+Other ways to think about
 #end section
+
 // sections:
+// Integers modulo p
 // Implementation (complex)
 // Implementation (complex, improved)
 // Implementation (Z/pZ)
