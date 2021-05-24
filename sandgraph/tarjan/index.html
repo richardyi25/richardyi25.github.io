@@ -1,0 +1,96 @@
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title></title>
+			<script src = "../jquery.min.js"></script>
+			<script src = "../jcanvas.min.js"></script>
+			<script src = "../sandgraph.js"></script>
+			<script src = "../anim.js"></script>
+			<script src = "main.js"></script>
+			<link rel="stylesheet" href="../style.css"/>
+		</head>
+
+		<body>
+			<!-- Currently no support for other dimensions -->
+			<div style="font-weight:bold;font-size:25px;font-family:Verdana,Sans;">
+				Tarjan's Lowlink Algorithm
+			</div>
+
+			<canvas width="1200" height="675"></canvas>
+			<div id="info">
+				<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
+					Controls
+				</div>
+				<ul>
+					<li>Press T to toggle auto/manual mode</li>
+					<li>Press the Up/Down arrow keys to change speed</li>
+					<li>Press Press the Left/Right arrow keys to step forward/back in manual mode</li>
+				</ul>
+				<div style="font-weight:bold;font-size:20px;font-family:Verdana,Sans;">
+					Tarjan's Lowlink Algorithm Explanation
+				</div>
+				<p>
+					<b>Note:</b>
+					This algorithm only deals with undirected graphs.
+					Directed graphs require a small adjustment.
+				</p>
+
+				<p>
+					In a <a href="../DFS/index.html">DFS</a>, if a node v was visited as
+					an adjacent node of u, we call v the child of u and call u the parent of v.
+					These parent-child relationships form a directed tree, which is called the DFS tree.
+					Edges part of the DFS tree are called tree edges, while edges (u, v) that aren't are
+					<ol>
+						<li>Forward edges, if v is a descendant of u</li>
+						<li>Back edges, if v is an ancestor of u</li>
+						<li>Cross edges, otherwise</li>
+					</ol>
+					Undirected graphs do not have cross edges.
+				</p>
+
+				<p>
+					Additionally, for all u, we store stamp[u], the timestamp of when the node was visited.
+					We also store low[u], the lowlink of u, which is
+					the smallest time stamp achievable by starting from u,
+					following any number of tree edges, followed by at most one back edge.
+				</p>
+
+				<p>
+					Tarjan's Lowlink Algorithm computes low[u] for each u in linear time using
+					the following logic: <br/>
+
+					Initialize time = 0. Inside the DFS call of node u,
+					<ol>
+						<li>Mark u as visited</li>
+						<li>Set stamp[u] = low[u] = time</li>
+						<li>Increment time by 1</li>
+						<li>For each non-parent adjacent node v:</li>
+							<ol>
+								<li>If it's already been visited, set low[u] = min(low[u], stamp[v]), decreasing low[u] if (u, v) is a back edge</li>
+								<li>If it hasn't been visited: Call DFS(v), then set low[u] = min(low[u], low[v]), <br/>possibly decreasing low[u] since (u, v) is a tree edge</li>
+							</ol>
+					</ol>
+				</p>
+
+				<p>
+					A node is <b>cut vertex</b> or a <b>articulation point</b> if removing it disconnects the graph.
+					This happens iff either
+					<ol>
+						<li>Node u is the root of the DFS tree (first node visited) and it has at least two children</li>
+						<li>Node u is not the root and there exists a child v of u such that low[v] &geq; stamp[u]</li>
+					</ol>
+				</p>
+
+				<p>
+					An edge (u, v) is a <b>bridge</b> if removing it disconnects the graph.
+					This happens iff either
+					<ol>
+						<li>low[v] &gt; stamp[u]</li>
+						<li>low[u] &gt; stamp[v]</li>
+					</ol>
+				</p>
+		</div>
+	</body>
+</html>
+

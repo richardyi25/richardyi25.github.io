@@ -161,8 +161,8 @@ function Graph(nodes, edges){
 				fillStyle: '#EEE',
 				fromCenter: true,
 				// A bit larger than the out-node text
-				width: node.size * 0.45 / Math.pow(cdata.length, 0.8),
-				height: node.size * 0.45 / Math.pow(cdata.length, 0.8),
+				width: node.size * 0.45 / Math.pow(cdata.length, 0.3) + 2,
+				height: node.size * 0.45 / Math.pow(cdata.length, 0.3) + 2,
 			});
 
 			// Draw out-node text
@@ -173,7 +173,7 @@ function Graph(nodes, edges){
 				fromCenter: true,
 				fillStyle: 'black',
 				// Scales based on size of node and length of text
-				fontSize: node.size * 0.35 / Math.pow(cdata.length, 0.8),
+				fontSize: node.size * 0.35 / Math.pow(cdata.length, 0.3),
 				fontFamily: 'Arial'
 			});
 		}
