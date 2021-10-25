@@ -14,6 +14,7 @@
 
 body{
 	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
 	margin: 20px;
 	font: 16px Verdana, Sans;
 	background-color: #FFFFF7;
@@ -80,7 +81,7 @@ a{
 	font-size: 18px;
 }
 
-/* Experimental */
-.block, .section{
-	overflow-x: auto;
+.MathJax_CHTML {
+    overflow-x: scroll;
 }
+

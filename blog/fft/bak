@@ -1,6 +1,6 @@
 // TODO normalize phantoms to X's for readability
-#site-title A Primitive Guide to FFT
-#title A Primitive Guide to FFT
+#site-title A Gentle Dive into FFT
+#title A Gentle Dive into FFT
 #latex-preamble
 $$
 \newcommand{\om}{\omega}
@@ -12,42 +12,27 @@ $$
 
 #main
 
-#section Introduction
-In competitive programming, FFT or Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(n^2)$ to $O(n \log n)$. This is useful because polynomial multiplication can be used to solve a variety of problems.
-
-FFT is a fairly advanced topic, in the sense that it rarely shows up in problemsets, and if it does, it appears in more difficult problems.
-
-While this article uses terms like "Theorem" and "Proof", you should expect its rigorousness to be around that of a high school math class.
+#section Pre-Requisite Knowledge
+This article is intended for people who are familiar with the concept of time complexity and have a high school level knowledge of trigonometry and polynomials. Knowledge of complex numbers and number theory will help but is not necessary.
 #end section
 
-#section Pre-Requisite Knowledge
-Required:
-<ul>
-	<li>Time complexity</li>
-	<li>Summation ($\sum$) notation</li>
-	<li>Polynomials</li>
-	<li>Divide and conquer</li>
-</ul>
+#section Introduction
+The Fourier Transform is concept that has a wide variety of interpretations and variations across many fields of study including mathematics, physics, and engineering. Truly grasping this concept usually requires a deep dive into its mathematical beauty.
 
-Helpful, but not required:
-<ul>
-	<li>Complex numbers and trignometry</li>
-	<li>Number theory, specifically, $\mathbb Z/p\mathbb Z$</li>
-</ul>
-
-This article features code in C++.
+Thankfully, in competitive programming, we can skip over a lot of math. In competitive programming, the Fast Fourier Transform is a technique that speeds up polynomial multiplication from $O(n^2)$ to $O(n \log n)$. In this article, we will explore the basic concepts behind this speedup and its implementation and applications.
 #end section
 
 #section Multiplying Polynomials
+First, let's recap what a polynomial is:
 #block Definition - Polynomial
-
 A polynomial $f(x)$ of degree $n$ is defined as $$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
-where $a_0, \dots, a_n$ are numbers called coefficients.
+where $a_0, \dots, a_n$ are numbers.
 #end block
+It's common to include the restriction $a_n \neq 0$, but we won't. This allows us to "upgrade" polynomials to a higher degree by adding coefficients with value $0$.
 
-Often, this definition includes $a_n \neq 0$, but we won't. This allows us to "upgrade" polynomials to a higher degree by adding $0x^{n + 1} + 0x^{n + 2} + \dots$ to the end of it.
+For example, if $f(x) = a_0 + a_1x + \dots + a_nx^n$ is a polynomial of degree $n$, we can "upgrade" it to a polynomial of degree $n + k$ if we take $f(x)$ to be $a_0 + \dots + a_nx^n + 0x^{n+1} + \dots + 0x^{n+k}$.
 
-We can multiply polynomials to get a new polynomial:
+We can multiply polynomials to get a new polynomial. Suppose $f(x) = a_0 + \dots + a_nx^n$ and $g(x) = b_0 + \dots + b_nx^n$ are both polynomials of degree $n$. Let $h(x) = f(x)g(x)$ be their product. We can calculate $h(x)$ by distributing and collecting the terms:
 $$
 \begin{align}
 h(x) &= f(x)g(x) \\
@@ -56,101 +41,75 @@ h(x) &= f(x)g(x) \\
 \end{align}
 $$
 
-If we want to find the $k$-th coefficient of $h(x)$, denoted as $c_k$, we can rearrange the formula to get
+The product $h(x) = f(x)g(x) = c_0 + c_1x + \dots + c_{2n}x^{2n}$ is a polynomial of degree $2n$. We can find the $k$-th coefficient $c_k$ for all $0 \leq k \leq 2n$ by adding all $a_ib_j$ such that $i + j = k$. To do this, we loop though all $i$ from 0 to $k$ inclusive and set $j = k - i$. 
+
+#block Polynomial Multiplication Formula
+If
+$$
+\begin{align}
+f(x) &= a_0 + a_1x + \dots + a_nx^n \\
+g(x) &= b_0 + b_1x + \dots + a_nx^n \\
+h(x) = f(x)g(x) &= c_0 + c_1x + \dots + c_{2n}x^{2n}\end{align}
+$$
+then for all $0 \leq k \leq 2n$,
 $$ c_k = \sum_{i = 0}^k a_ib_{k - i} $$
+#end block
 
-Applying the formula directly, we need to add $k$ terms to compute $c_k$. To compute all coefficients, the time required is $O(n^2)$. If we avoid this direct formula, we can achieve $O(n \log n)$ using FFT.
+Note that this formula takes $O(n^2)$ time to compute $c_k$ for all $0 \leq k \leq 2n$, despite it only being $O(n)$ space of information. There seems to be a neat structure to the computation, so there's probably room for improvement by reusing calculations. This is where the Fast Fourier Transform comes in.
 #end section
-
 #section Sampling and Interpolating
-Let's say $f(x) = a_0 + a_1x + a_2x^2$ is a second degree polynomial. We don't know it's coefficients, but we know that $f(1) = 123$ and $f(3) = 456$. Is this enough to determine that $f(x)$ is? What if we also knew that $f(4) = 789$? There is a general result related to this:
-
+A polynomial $f(x) = a_0 + \dots + a_nx^n$ can be represented by only its coefficients $a_0, \dots, a_n$. However, if we know its value at enough points, we can also determine the coefficients of the polynomial.
 #block Theorem 1: Uniqueness of Interpolation
-Let $f(x)$ be a polynomial with degree $n$ whose coefficients $a_0, \dots, a_n$ are unknown.
-
-For any choice of $n + 1$ distinct numbers $s_0, \dots, s_n$, if we know $f(s_0), \dots, f(s_n)$, then uniquely determine $a_0, \dots, a_n$.
+Let $f(x) = a_0 + \dots + a_nx^n$ be a polynomial with degree $n$ whose coefficients $a_0, \dots, a_n$ are unknown. For any choice of $n + 1$ distinct numbers $s_0, \dots, s_n$, if we know $f(s_0), \dots, f(s_n)$, then we can uniquely determine $a_0, \dots, a_n$.
 
 <a href="proof1.html">Proof</a>
 #end block
 
-Let's call the choice of distinct numbers $s_0, \dots, s_n$ <b>sampling points</b> and the values of $f(s_0), \dots f(s_n)$ <b>samples</b>. The polynomial that satisfies the samples is said to <b>interpolate</b> the samples.
+Let's call the choice of distinct numbers $s_0, \dots, s_n$ <b>sampling points</b> and the values of $f(s_0), \dots f(s_n)$ <b>samples</b>. Note that while the samples uniquely determine the coefficients, the samples themselves aren't unique because any choice of distinct sampling points will work. Any polynomial that satisfies the samples is said to <b>interpolate</b> the samples.
+
+We'll call the process of calculating samples from the polynomial in coefficient form <b>sampling</b> and the process of determining the coefficients from samples <b>interpolating</b>.
+
 #end section
 
 #section Speedup Overview
-For the sake of convenience, we'll talk about polynomials of degree $n - 1$ from now on. Now, let's talk about the general strategy we'll use to multiply two multinomial.
+For the sake of convenience, we'll talk about polynomials of degree $n - 1$ from now on. Keep in mind a polynomial of degree $n - 1$ in the form $a_0 + a_1x + \dots + a_{n-1}x^{n-1}$ can be expressed in memory as an array $[a_0, a_1, \dots, a_{n-1}]$, which is of length $n$.
 
-To multiply $f(x)$ and $g(x)$, we'll first pick some sampling points $s_0, \dots, s_{2n-1}$. Then, we'll evaluate each of them at these sampling points.
+Let $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ and $g(x) = b_0 + \dots + b_{n-1}x^{n-1}$ be polynomials of degree $n - 1$. Instead of multiplying them directly, we'll first sample both $f(x)$ and $g(x)$ at sample points $s_0, \dots, s_{2n - 1}$, calculating $f(s_0), \dots, f(s_{2n - 1})$ as well as $g(s_0), \dots, g(s_{2n - 1})$.
 
-Now, we'll multiply the samples of $f(x)$ by the corresponding samples of $g(x)$. That is, we calculate $f(s_0)g(s_0), \dots, f(s_{2n -1})g(s_{2n-1})$. From the Theorem above, this is enough to calculate all the coefficients of $f(x)g(x)$.
+Then we'll pointwise multiply the samples, calculating $h(s_0) = f(s_0)g(s_0), \dots, h(s_{2n-1})= f(s_{2n - 1})g(s_{2n - 1})$. The theorem from the previous section tells us that this is enough to recover the coefficients of $f(x)g(x)$, since we have $2n$ samples and $f(x)g(x)$ is of degree $2n - 2$. Once we do that, we've calculated $f(x)g(x)$.
 
-This seems like a roundabout way to do things but surprisingly, each one of these steps takes at most $O(n \log n)$.
-#end section
-
-#section Trying to Sample Quickly
-For some polynomial of degree $n - 1$, let's try to quickly find $n$ samples, that is, pick some $s_0, \dots, s_{k-1}$ and calculate $f(s_0), \dots, f(s_{n-1})$. For now, we'll also require:
-<ul>
-	<li>The number of samples is one more than the degree of the polynomial</li>
-	<li>$n$ is a power of 2</li>
-</ul>
-We'll see later that this limited form can generalize pretty easily.
-
-As an example, we'll try $n = 2$ and $s_0 = 1, s_1 = -1$. That is, we want to compute $f(1)$ and $f(-1)$.
-
-We can see that $f(1) = a_0 + a_1 + a_2 + \dots + a_{n-1}$, which is a just the sum of coefficients. However, $f(-1) = a_0 - a_1 + a_2 - \dots + a_{n-1}$, which is the altenating sum of coefficients.
-
-If we separate the coefficients that we add from the ones we subtract in the calculation $f(-1)$, we can split $f(x)$ into two polynomials: the even degree-terms and the odd-degree terms. For simplicity, we assume that $n$ is an even number.
-$$
-\begin{align}
-	f_{even}(x) &= a_0 + a_2 + \dots + a_{n - 2} \\
-	f_{odd}(x) &= a_1 + a_3 + \dots + a_{n - 1}
-\end{align}
-$$
-
-With these definitions, we can write two equalities:
-$$
-\begin{align}
-	f(1) &= f_{even}(1) + f_{odd}(1) \\
-	f(-1) &= f_{even}(1) - f_{odd}(1)
-\end{align}
-$$
-
-We've basically converted our original problem of calculating $f(1)$ and $f(-1)$ into two smaller problems: finding $f_{even}(1)$ and $f_{odd}(1)$ at a cost of $O(n)$ for combining the results. We notice that the two smaller problems have both half the size of the polynomial and half the number samples required. If you're familiar with divide and conquer (e.g. mergesort), we've split the problem into two versions that are half the size at a cost of $O(n)$. This yields a total time complexity of $O(n \log n)$.
-
-But wait, we've only described a strategy for finding two samples. How can we scale this up to any number of samples? Before we do this, let's try to handle 4 samples. The reason why the above formulas work is because $(-1)^k$ is equal to $1$ for even $k$ and equal to $-1$ for odd $k$. If we wanted to extend this strategy, we'd have to find a number whose square is $-1$.
-
-There is a number 
+If we can quickly sample and interpolate polynomials, then we can quickly multiply polynomials since the pointwise multiplication step only takes $O(N)$ time.
 #end section
 
 #section Primitive Roots of Unity
+We have the luxury of picking whichever $2n$ sample points $s_0, \dots s_{2n - 1}$ we want, but if we want both sampling and interpolation to be fast, we better pick sample points that allow us to reuse calculations.
 
-In general, we want an $n$-th root of the number $1$. This is called an $n$-th root of unity. This isn't too useful since 1
-
+The type of number that will allow us to do this is the primitive roots of unity.
 #block Definition - Roots of Unity and Primitivity
-Let $n$ be a positive integer.
-A number $\om_n$ is said to be an <b>n-th root of unity</b> if $\om_n^n =1 $.
+Let $n$ be a positive integer. A number $\om_n$ is said to be an <b>$\mathbf n$-th root of unity</b> if $\om_n^n =1 $.
 In addition, a $n$-th root of unity $\om_n$ is said to be <b>primitive</b> if for all $0 < k < n$, $\om_n^k \neq 1$.
 #end block
 
-If we're using the real numbers, these don't exist for $n > 2$. That's not really a problem since we can just choose a number system where they do. For now, let's look at the properties of the numbers.
+For $n > 2$, $n$-th roots of unity don't exist in the real numbers, so we'll have to use a new number system. If you're not familiar with complex numbers or number theory, that's fine since we can talk about these numbers without using a particular system. The important fact is that there are number systems that allow for these $n$-th roots of unity for any $n$.
 
 #block Theorem 2: Properties of Primitive Roots of Unity
-Let $n$ be an even number, and $\om_n$ be a primitive $n$-th root of unity.
+Let $n$ be an even number, $\om_n$ be a primitive $n$-th root of unity, and $m = \frac n2$.
 <div>
 	<b>Theorem 2.1:</b> For all $0 < k < n$, the values of $\om_n^k$ are distinct $n$-th roots of unity.
 </div>
-<div style="margin: 5px 0px 7px 0px">
-	<b>Theorem 2.2:</b> $\om_{n}^{n/2} = -1$.
+<div style="margin: 5px 0px 2px 0px">
+	<b>Theorem 2.2:</b> $\om_{n}^m = -1$.
 </div>
 <div>
 	<b>Theorem 2.3:</b>
-	<ol style="margin: 10px 2px 0px 2px">
-		<li>$\om_n^2$ is an $n/2$-th root of unity. Let's call it $\om_{n/2}$.</li>
-		<li>For all $0 < k < n$, $(\om_n^k)^2 = \om_{n/2}^k$</li>
-		<li>For all $0 < k < n$, $(\om_n^{k + {n/2}})^2 = \om_{n/2}^k$</li>
+	<ol>
+		<li>$\om_n^2$ is an $m$-th root of unity. Let's call it $\om_m$.</li>
+		<li>For all $0 < k < n$, $(\om_n^k)^2 = \om_m^k$</li>
+		<li>For all $0 < k < n$, $(\om_n^{k + m})^2 = \om_m^k$</li>
 	</ol>
 </div>
 <div>
-<b>Theorem 2.4:</b> $\om_n^0 + \om_n^1 + \om_n^{2} + \dots + \om_n^{n-1} = 0$.
+<b>Theorem 2.4:</b> For all $0 < k < n$, $\om_n^0 + \om_n^k + \om_n^{2k} + \dots + \om_n^{(n-1)k} = 0$.
 </div>
 
 <div style="margin-top: 10px">
@@ -158,6 +117,7 @@ Let $n$ be an even number, and $\om_n$ be a primitive $n$-th root of unity.
 </div>
 #end block
 
+For the rest of the article, we'll keep the convention of $m = \frac n2$.
 #end section
 
 #section Sampling Quickly
@@ -696,8 +656,6 @@ $\om^c$ is a primitive $2^k$-th root of unity in the integers modulo $p$.
 // sections:
 // Implementation (complex)
 // Implementation (complex, improved)
-// Other improvements
 // Implementation (Z/pZ)
-// Variants
 // Applications
 #end main
