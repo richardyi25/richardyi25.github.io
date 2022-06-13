@@ -1,6 +1,5 @@
 <html lang="en">
 	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="UTF-8">
 		<title>A Primitive Guide to FFT</title>
 		<link rel="stylesheet" href="prism.css">
@@ -39,17 +38,15 @@
 				<li><a href="#toc1">Pre-Requisite Knowledge</a></li>
 				<li><a href="#toc2">Multiplying Polynomials</a></li>
 				<li><a href="#toc3">Algorithm Overview</a></li>
-				<li><a href="#toc4">Picking Sampling Points</a></li>
-				<li><a href="#toc5">Sampling</a></li>
-				<li><a href="#toc6">Sampling and Interpolating</a></li>
-				<li><a href="#toc7">Trying to Sample Quickly</a></li>
-				<li><a href="#toc8">Primitive Roots of Unity</a></li>
-				<li><a href="#toc9">Sampling Quickly</a></li>
-				<li><a href="#toc10">Reducing Interpolating to Sampling</a></li>
-				<li><a href="#toc11">Interpolating Quickly</a></li>
-				<li><a href="#toc12">Complex Numbers</a></li>
-				<li><a href="#toc13">Implementation - Complex Numbers</a></li>
-				<li><a href="#toc14">The Integers Modulo A Prime Number</a></li>
+				<li><a href="#toc4">Sampling and Interpolating</a></li>
+				<li><a href="#toc5">Trying to Sample Quickly</a></li>
+				<li><a href="#toc6">Primitive Roots of Unity</a></li>
+				<li><a href="#toc7">Sampling Quickly</a></li>
+				<li><a href="#toc8">Reducing Interpolating to Sampling</a></li>
+				<li><a href="#toc9">Interpolating Quickly</a></li>
+				<li><a href="#toc10">Complex Numbers</a></li>
+				<li><a href="#toc11">Implementation - Complex Numbers</a></li>
+				<li><a href="#toc12">The Integers Modulo A Prime Number</a></li>
 			</ul>
 		</div>
 
@@ -119,11 +116,7 @@
 						<div class="block-heading">Definition - Polynomial</div>
 
 					<p>
-						A polynomial $f(x)$ of degree $n$ is defined as
-					</p>
-
-					<p>
-						$$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
+						A polynomial $f(x)$ of degree $n$ is defined as $$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
 					</p>
 
 					<p>
@@ -162,52 +155,24 @@
 				<div class="subsection">
 
 					<p>
-						We now describe the steps in the $O(n \log n)$ way to multiply polynomials.
+						From now o
 					</p>
 
 					<p>
-						Let $f(x)$ and $g(x)$ be two polynomials, both with $n$ coefficients, that is, with degree $n - 1$.
+						To multiply $f(x)$ and $g(x)$, we'll first pick some sampling points $s_0, \dots, s_{2n-1}$. Then, we'll evaluate each of them at these sampling points.
 					</p>
 
-<ol>
-
-<li>Pick $2n$ numbers $s_0, \dots, s_{2n - 1}$ as <b>sampling points</b>.
-
-<li>Compute $f(s_0), \dots, f(s_{2n - 1})$ and $g(s_0), \dots, g(s_{2n - 1})$ in $O(n \log n)$ time. These values are called <b>samples</b>. </li>
-
-<li>Compute $v_0 = f(s_0)g(s_0), \dots, v_{2n - 1} = f(s_{2n - 1})g(s_{2n - 1})$. This takes $O(n)$ time.
-
-<li>Find the unique polynomial $h(x)$ of degree $2n - 1$ that satisfies $h(s_0) = v_0, \dots h(s_{2n - 1}) = v_{2n - 1}$ in $O(n \log n)$ time. At this point, $h(x)$ is guaranteed to be $f(x)g(x)$ and we're done.
-
-</ol>
+					<p>
+						Now, we'll multiply the samples of $f(x)$ by the corresponding samples of $g(x)$. That is, we calculate $f(s_0)g(s_0), \dots, f(s_{2n -1})g(s_{2n-1})$. From the Theorem above, this is enough to calculate all the coefficients of $f(x)g(x)$.
+					</p>
 
 					<p>
-						The hard parts are Step 2 and Step 4. Step 2 is also called the <b>sampling</b> problem and Step 4 is also called the <b>interpolating</b> problem.
+						This seems like a roundabout way to do things but surprisingly, each one of these steps takes at most $O(n \log n)$.
 					</p>
 				</div>
 			</div>
 
 			<div id="toc4" class="section">
-				<div class="heading">Picking Sampling Points</div>
-				<div class="subsection">
-
-					<p>
-						We can pick whichever sampling points $s_0, \dots, s_{2n-1}$ we want. The numbers with the best properties to do this in
-					</p>
-				</div>
-			</div>
-
-			<div id="toc5" class="section">
-				<div class="heading">Sampling</div>
-				<div class="subsection">
-
-					<p>
-						Our first problem is sampling. Suppose $f(x) = a_0 + a_1x + \dots + a_{n-1}x^{n-1}$ is a polynomial with $n$ coefficients (and therefore degree $n$).
-					</p>
-				</div>
-			</div>
-
-			<div id="toc6" class="section">
 				<div class="heading">Sampling and Interpolating</div>
 				<div class="subsection">
 
@@ -235,7 +200,7 @@
 				</div>
 			</div>
 
-			<div id="toc7" class="section">
+			<div id="toc5" class="section">
 				<div class="heading">Trying to Sample Quickly</div>
 				<div class="subsection">
 
@@ -293,7 +258,7 @@
 				</div>
 			</div>
 
-			<div id="toc8" class="section">
+			<div id="toc6" class="section">
 				<div class="heading">Primitive Roots of Unity</div>
 				<div class="subsection">
 
@@ -371,7 +336,7 @@
 				</div>
 			</div>
 
-			<div id="toc9" class="section">
+			<div id="toc7" class="section">
 				<div class="heading">Sampling Quickly</div>
 				<div class="subsection">
 
@@ -543,7 +508,7 @@
 				</div>
 			</div>
 
-			<div id="toc10" class="section">
+			<div id="toc8" class="section">
 				<div class="heading">Reducing Interpolating to Sampling</div>
 				<div class="subsection">
 
@@ -785,7 +750,7 @@
 				</div>
 			</div>
 
-			<div id="toc11" class="section">
+			<div id="toc9" class="section">
 				<div class="heading">Interpolating Quickly</div>
 				<div class="subsection">
 
@@ -847,7 +812,7 @@
 				</div>
 			</div>
 
-			<div id="toc12" class="section">
+			<div id="toc10" class="section">
 				<div class="heading">Complex Numbers</div>
 				<div class="subsection">
 
@@ -939,7 +904,7 @@
 				</div>
 			</div>
 
-			<div id="toc13" class="section">
+			<div id="toc11" class="section">
 				<div class="heading">Implementation - Complex Numbers</div>
 				<div class="subsection">
 
@@ -973,7 +938,7 @@
 				</div>
 			</div>
 
-			<div id="toc14" class="section">
+			<div id="toc12" class="section">
 				<div class="heading">The Integers Modulo A Prime Number</div>
 				<div class="subsection">
 

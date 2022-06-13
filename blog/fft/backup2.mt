@@ -41,11 +41,7 @@ This article features code in C++.
 #section Multiplying Polynomials
 #block Definition - Polynomial
 
-A polynomial $f(x)$ of degree $n$ is defined as
-
-$$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
-
-
+A polynomial $f(x)$ of degree $n$ is defined as $$f(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n$$
 where $a_0, \dots, a_n$ are numbers called coefficients.
 #end block
 
@@ -67,26 +63,12 @@ Applying the formula directly, we need to add $k$ terms to compute $c_k$. To com
 #end section
 
 #section Algorithm Overview
-We now describe the steps in the $O(n \log n)$ way to multiply polynomials.
+From now o
+To multiply $f(x)$ and $g(x)$, we'll first pick some sampling points $s_0, \dots, s_{2n-1}$. Then, we'll evaluate each of them at these sampling points.
 
-Let $f(x)$ and $g(x)$ be two polynomials, both with $n$ coefficients, that is, with degree $n - 1$.
+Now, we'll multiply the samples of $f(x)$ by the corresponding samples of $g(x)$. That is, we calculate $f(s_0)g(s_0), \dots, f(s_{2n -1})g(s_{2n-1})$. From the Theorem above, this is enough to calculate all the coefficients of $f(x)g(x)$.
 
-<ol>
-	<li>Pick $2n$ numbers $s_0, \dots, s_{2n - 1}$ as <b>sampling points</b>.
-	<li>Compute $f(s_0), \dots, f(s_{2n - 1})$ and $g(s_0), \dots, g(s_{2n - 1})$ in $O(n \log n)$ time. These values are called <b>samples</b>. </li>
-	<li>Compute $v_0 = f(s_0)g(s_0), \dots, v_{2n - 1} = f(s_{2n - 1})g(s_{2n - 1})$. This takes $O(n)$ time.
-	<li>Find the unique polynomial $h(x)$ of degree $2n - 1$ that satisfies $h(s_0) = v_0, \dots h(s_{2n - 1}) = v_{2n - 1}$ in $O(n \log n)$ time. At this point, $h(x)$ is guaranteed to be $f(x)g(x)$ and we're done.
-</ol>
-
-The hard parts are Step 2 and Step 4. Step 2 is also called the <b>sampling</b> problem and Step 4 is also called the <b>interpolating</b> problem.
-#end section
-
-#section Picking Sampling Points
-We can pick whichever sampling points $s_0, \dots, s_{2n-1}$ we want. The numbers with the best properties to do this in 
-#end section 
-
-#section Sampling
-Our first problem is sampling. Suppose $f(x) = a_0 + a_1x + \dots + a_{n-1}x^{n-1}$ is a polynomial with $n$ coefficients (and therefore degree $n$).
+This seems like a roundabout way to do things but surprisingly, each one of these steps takes at most $O(n \log n)$.
 #end section
 
 #section Sampling and Interpolating

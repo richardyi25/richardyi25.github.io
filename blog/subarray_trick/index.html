@@ -1,0 +1,222 @@
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta charset="UTF-8">
+		<title>Subarray Trick</title>
+		<link rel="stylesheet" href="prism.css">
+		<link rel="stylesheet" href="../style.css">
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+				tex2jax: {
+					inlineMath: [['$','$']],
+					displayMath: [['$$','$$']],
+					processEscapes: true
+				}
+			});
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+		<script src="prism.js"></script>
+	</head>
+
+	<body>
+		<div id="title">Subarray Trick</div>
+
+		<div id="preamble">
+				$$
+				\newcommand{\arr}{\text{arr}}
+				\newcommand{\psa}{\text{psa}}
+				$$
+		</div>
+
+		<div id="toc">
+			<div class="heading">Table of Contents</div>
+			<ul>
+				<li><a href="#toc0">Pre-Requisite Knowledge</a></li>
+				<li><a href="#toc1">Introduction</a></li>
+				<li><a href="#toc2">Example Problem 1 - <a href="https://dmoj.ca/problem/dmopc17c1p2">Sharing Crayons</a></a></li>
+				<li><a href="#toc3">Example Problem 2 - <a href="https://codeforces.com/contest/1398/problem/C">Good Subarrays</a></a></li>
+				<li><a href="#toc4">Example Problem 3 - <a href="https://dmoj.ca/problem/hci16xorpow">Xorpow</a></a></li>
+			</ul>
+		</div>
+
+		<div id="main">
+
+			<div id="toc0" class="section">
+				<div class="heading">Pre-Requisite Knowledge</div>
+				<div class="subsection">
+
+					<p>
+						Required:
+					</p>
+
+<ul>
+
+<li>Time Comlpexity</li>
+
+<li>Prefix Sum Array</li>
+
+</ul>
+
+					<p>
+						Nice to know:
+					</p>
+
+<ul>
+
+<li>Binary Indexed Tree</li>
+
+</ul>
+
+					<p>
+						This article features example code in C++.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc1" class="section">
+				<div class="heading">Introduction</div>
+				<div class="subsection">
+
+					<p>
+						This is a technique about counting subarrays whose sum satisfy a certain condition. There's no formal name I know for this technique, so I'm calling it "subarray trick".
+					</p>
+				</div>
+			</div>
+
+			<div id="toc2" class="section">
+				<div class="heading">Example Problem 1 - <a href="https://dmoj.ca/problem/dmopc17c1p2">Sharing Crayons</a></div>
+				<div class="subsection">
+
+<b>Problem summary:</b>Given an array of size $N$, count the number of subarrays whose sum is divisible by $K$. ($1 \leq N \leq 10^5, 1 \leq M \leq 10^9$).
+
+<br/><br/>
+
+<b>Solution:</b>
+
+<ol>
+
+<li>
+
+					<p>
+						Let's all the array $\arr$ and make it $1$-indexed.
+					</p>
+
+</li>
+
+<li>
+
+					<p>
+						A subarray is uniquely defined by the leftmost and rightmost element, so we can rephrase the problem as: find how many pairs $(L, R)$ such that $1 \leq L \leq R \leq N$ and $\arr[L] + \dots + \arr[R]$ is divisible by $M$.
+					</p>
+
+</li>
+
+<li>
+
+					<p>
+						We construct a prefix sum array $\psa$ over the array $\arr$. Specifically, $\psa[i] = \arr[1] + \arr[2] + \dots + \arr[i]$. Now, the problem becomes finding how many $1 \leq L \leq R \leq N$ such that $\psa[R] - \psa[L - 1]$ is divisible by $M$.
+					</p>
+
+</li>
+
+<li>
+
+					<p>
+						We do a change of variable: $L' = L - 1$. The problem now becomes finding the number of $0 \leq L' < R \leq N$ such that $\psa[R] - \psa[L']$ is divisible by $M$. Implicitly, $\arr[i] = \psa[i] = 0$.
+					</p>
+
+</li>
+
+<li>
+
+					<p>
+						We note that $\psa[R] - \psa[L]$ is divisible by $M$ iff and only if $\psa[R]\ \%\ M = \psa[L']\ \%\ M$.
+					</p>
+
+</li>
+
+<li>
+
+					<p>
+						Now, let $\arr2[i] = \psa[i]\ \%\ M$. Now, we want to find the number of $0 \leq L' < R \leq N$ such that $\arr2[L'] = \arr2[R]$. The problem is now reduced to how many pairs of numbers are the same across an array $\arr2$. We can solve this in many ways, such as using a map data structure or sorting the array and using a bit of math.
+					</p>
+
+</li>
+
+</ol>
+
+<b>Code:</b>
+
+					<pre class="line-numbers" data-line="let $\arr2[i] = \psa[i]\ \%\ M$. Now, we want to find the number of $0 \leq L' < R \leq N$ such that $\arr2[L'] = \arr2[R]$. The problem is now reduced to how many pairs of numbers are the same across an array $\arr2$. We can solve this in many ways, such as using a map data structure or sorting the array and using a bit of math."><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;map&gt;
+using namespace std;
+
+const int MAXN = 1e5+1;
+int N, M, arr[MAXN], arr2[MAXN];
+long long psa[MAXN];
+
+int main(){
+	cin &gt;&gt; N &gt;&gt; M;
+	for(int i = 1; i &lt;= N; i++){
+		cin &gt;&gt; arr[i];
+	}
+
+	for(int i = 1; i &lt;= N; i++){
+		psa[i] = psa[i - 1] + arr[i];
+	}
+
+	for(int i = 1; i &lt;= N; i++){
+		arr2[i] = psa[i] % M;
+	}
+
+	long long answer = 0;
+	map&lt;int, int&gt; frequency;
+
+	// note that i = 0 here
+	for(int i = 0; i &lt;= N; i++){
+		answer += frequency[arr2[i]];
+		++frequency[arr2[i]];
+	}
+
+	cout &lt;&lt; answer;
+}</code></pre>
+				</div>
+			</div>
+
+			<div id="toc3" class="section">
+				<div class="heading">Example Problem 2 - <a href="https://codeforces.com/contest/1398/problem/C">Good Subarrays</a></div>
+				<div class="subsection">
+
+<b>Problem Summary:</b> Given an array of size $N$, count the number of subarrays whose sum is equal to its length. ($N \leq 10^5$)
+
+<b>Solution:</b>
+
+<ol>
+
+<li>Once again, let the array be called $\arr$ and be $1$-indexed.</li>
+
+<li>We note that the length of a subarray $\arr[L], \dots, \arr[R]$ is $R - L + 1$. We want to find how many pairs $(L, R)$ such that $1 \leq L \leq R \leq N$ and $\arr[L] + \dots + \arr[R] = R - L + 1]$</li>
+
+<li>Again, we will construct a prefix sum array $\psa[]$, and the problem becomes </li>
+
+</ol>
+				</div>
+			</div>
+
+			<div id="toc4" class="section">
+				<div class="heading">Example Problem 3 - <a href="https://dmoj.ca/problem/hci16xorpow">Xorpow</a></div>
+				<div class="subsection">
+
+					<p>
+						This technique works for counting subarray sums, but it also works for counting XOR-sums (the bitwise XOR of all elements) of subarrays. More generally, it works for any operation that has an inverse for each element, and in the case of bitwise XOR, since $x \text{ XOR } x = 0$ for all $x$, it is invertible.
+					</p>
+
+					<p>
+						First, let's solve an easier version of the problem.
+					</p>
+				</div>
+			</div>
+
+		</div>
+	</body>
+</html>
