@@ -35,12 +35,17 @@
 			<div class="heading">Table of Contents</div>
 			<ul>
 				<li><a href="#toc0">Introduction</a></li>
-				<li><a href="#toc1">Pre-Requisite Knowledge</a></li>
+				<li><a href="#toc1">Prerequisite Knowledge</a></li>
 				<li><a href="#toc2">Multiplying Polynomials</a></li>
-				<li><a href="#toc3">The Roots of Unity</a></li>
-				<li><a href="#toc4">Sampling Quickly</a></li>
-				<li><a href="#toc5">Interpolation in $O(n^2)$</a></li>
-				<li><a href="#toc6">Interpolating Quickly</a></li>
+				<li><a href="#toc3">Algorithm Overview</a></li>
+				<li><a href="#toc4">The Roots of Unity</a></li>
+				<li><a href="#toc5">Sampling Quickly</a></li>
+				<li><a href="#toc6">Interpolation in $O(n^2)$</a></li>
+				<li><a href="#toc7">Interpolating Quickly</a></li>
+				<li><a href="#toc8">Introduction to Complex Numbers</a></li>
+				<li><a href="#toc9">Using Complex Numbers</a></li>
+				<li><a href="#toc10">Introduction to $\mathbb{Z} / p \mathbb{Z}$</a></li>
+				<li><a href="#toc11">Primitive Roots of Unity in $\mathbb{Z} / p \mathbb{Z}$</a></li>
 			</ul>
 		</div>
 
@@ -57,7 +62,7 @@
 			</div>
 
 			<div id="toc1" class="section">
-				<div class="heading">Pre-Requisite Knowledge</div>
+				<div class="heading">Prerequisite Knowledge</div>
 				<div class="subsection">
 
 					<p>
@@ -82,7 +87,7 @@
 
 <ul>
 
-<li>Complex numbers and trignometry</li>
+<li>Complex numbers and trigonometry</li>
 
 <li>Number theory, specifically, properties of $\mathbb Z/p\mathbb Z$</li>
 
@@ -106,7 +111,9 @@
 				</div>
 			</div>
 
-			<div id="toc2" class="section">
+			<div class="part">Part 1: The Algorithm</div>
+
+			<div id="toc3" class="section">
 				<div class="heading">Multiplying Polynomials</div>
 				<div class="subsection">
 
@@ -143,12 +150,112 @@
 					</p>
 
 					<p>
-						$$\begin{align}f(x) \times g(x) &= (a_0 + a_1x + a_2x^2)(b_0 + b_1x + b_2x^2) \\&= a_0(b_0 + b_1x + b_2x^2) + a_1x(b_0 + b_1x + b_2x^2) + a_2x^2(b_0 + b_1x + b_2x^2) \\&= a\end{align}$$
+						$$\begin{align}f(x) \times g(x) &= (a_0 + a_1x + a_2x^2)(b_0 + b_1x + b_2x^2) \\&= a_0(b_0 + b_1x + b_2x^2) + a_1x(b_0 + b_1x + b_2x^2) + a_2x^2(b_0 + b_1x + b_2x^2) \\&= a_0b_0 + a_0b_1x + a_0b_2x^2 + a_1b_0x + a_1b_1x^2 + a_1b_2x^3 + a_2b_0x^2 + a_2b_1x^3 + a_2b_2x^4 \\&= (a_0b_0) + (a_0b_1 + a_1b_0)x + (a_0b_2 + a_1b_1 + a_2b_0)x^2 + (a_1b_2 + a_2b_1)x^3 + (a_2b_2)x^4\end{align}$$
+					</p>
+
+					<p>
+						If we think of a function $\text{Multiply}$ that takes in two arrays, each representing a polynomial, then we rewrite the example above as
+					</p>
+
+					<p>
+						$$\text{Multiply}( [a_0, b_1, a_2], [b_0, b_1, b_2] ) = [a_0b_0, a_0b_1 + a_1b_0, a_0b_2 + a_1b_1 + a_2b_0, a_1b_2 + a_2b_1, a_2b_2]$$
+					</p>
+
+					<p>
+						We note that even though size
 					</p>
 				</div>
 			</div>
 
-			<div id="toc3" class="section">
+			<div id="toc4" class="section">
+				<div class="heading">Algorithm Overview</div>
+				<div class="subsection">
+
+					<p>
+						Instead of multiplying polynomials directly, which will take us $O(n^2)$ time, we're going to take a roundabout route instead. Again, we want to multiply two polynomials $f(x)$ and $g(x)$, both size $n$.
+					</p>
+
+<ol id="multlist">
+
+<li>Pick $m$ numbers numbers $s_0, s_1, \dots, s_{m-1}$. We'll call these <i>sampling points</i>.</li>
+
+<li>Evaluate $f(x)$ and $g(x)$ at all the sampling points. In other words, calculate $f(s_0), \dots, f(s_{m-1})$ and $g(s_0), \dots, f(s_{m-1})$. We'll call these value <i>samples</i>, and this step is called<i> sampling</i>.</li>
+
+<li>Multiply the samples together, computing $f(s_0)g(s_0), f(s_1)g(s_1), \dots, f(s_{m-1})g(s_{m-1})$. Also, lets call these values $v_0, v_1, \dots, v_{m-1}$. This step is also sometimes called <i>pointwise multiplication</i></li>
+
+<li>Find a polynomial $h(x)$ such that $h(s_k) = v_k$ for all $0 \leq k < m$. In other words, find a polynomial $h(x)$ and $f(x)g(x)$ that agree on all $m$ sampling points. This step is called <i>interpolation</i>.</li>
+
+</ol>
+
+					<p>
+						This seems like a complicated way to do things, and we're not even sure if it works. Will $h(x) = f(x)g(x)$ just because they agree on the $m$ sampling points? More importantly, if it's possible, how can we choose an $m$ such that we can guarantee that $h(x)$ will equal $f(x)g(x)$?
+					</p>
+
+					<p>
+						The answer is surprisingly simple:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Uniqueness of Interpretation</div>
+
+					<p>
+						Consider a polynomial $f(x)$. We know that it has size $n$ and therefore degree $n - 1$, but we do not know what it is.
+					</p>
+
+					<p>
+						If we have $n$ samples, that is, we know $f(s_k) = v_k$ for $0 \leq k < n$, for any choice of $s_0, \dots, s_n$, there is exactly one $f(x)$ that satisfy these equalities, which means we can determine $f(x)$.
+					</p>
+
+<a href="#">Proof</a>
+					</div>
+
+					<p>
+						Since $f(x)$ and $g(x)$ are both degree $n - 1$ polynomials, $h(x) = f(x)g(x)$ has degree $2n - 2$ and therefore size $2n - 1$. Therefore, we only need $2n - 1$ samples to recreate $h(x)$. For the sake of convenience, we're going to be using $2n$ samples.
+					</p>
+
+					<p>
+						Now let's look at our refined algorithm, which is the same thing but with $2n$ instead of $m$:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Algorithm Overview</div>
+
+<ol id="multlist">
+
+<li>Pick $m$ numbers numbers $s_0, s_1, \dots, s_{2n-1}$ called <i>sampling points</i>.</li>
+
+<li>Evaluate $f(x)$ and $g(x)$ at all the sampling points. These values are called <i>samples</i></li>
+
+<li>Multiply the samples together, computing $f(s_0)g(s_0), f(s_1)g(s_1), \dots, f(s_{2n-1})g(s_{2n-1})$. Also, lets call these values $v_0, v_1, \dots, v_{2n-1}$.</li>
+
+<li>Find a polynomial $h(x)$ such that $h(s_k) = v_k$ for all $0 \leq k < m$. In other words, <i>interpolate</i> $h(x)$ from the samples.</li>
+
+<li>Based on the Uniqueness of Interpolation, we know that $h(x)$ must equal $f(x)g(x)$.</li>
+
+</ol>
+					</div>
+
+					<p>
+						Let's briefly talk about a couple of these steps:
+					</p>
+
+<ul>
+
+<li>Step 3, pointwise multiplication, is easy and can be done in $O(n)$ with just a loop over the $2n$ pairs of samples.</li>
+
+<li>Step 2, sampling, can be done in $O(n^2)$ easily since there are $n$ terms in $f(x)$ and $g(x)$ each, and each need to be evaluated at $2n$ sampling points. We aim to lower this down to $O(n \log n)$</li>
+
+<li>Step 4, interpolating, doesn't seem to have an easy algorithm in any time complexity. However, if we choose our sampling points wisely, we'll find that it's just as easy as sampling, and we can also do it in $O(n \log n)$.
+
+</ul>
+
+					<p>
+						If we can somehow get Step 2 and Step 4 (sampling and interpolating) both down to $O(n \log n)$, we'll be able to multiply polynomials in $O(n \log n)$. But first, let's choose some nice sampling points.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc5" class="section">
 				<div class="heading">The Roots of Unity</div>
 				<div class="subsection">
 
@@ -169,11 +276,11 @@
 					</div>
 
 					<p>
-						In the real numbers, there aren't any primitive $n$-th roots of unity for $n > 2$, so we'll have to look towards different sets of numbers to find these. For those familiar, in the complex numbers, $\cos(\theta) + i \sin(\theta)$ where $\theta = \frac{2\pi}n i$ is a primitive $n$-th root of unity and in $\mathbb Z / p \mathbb Z$, any generator of the multiplicative group is a $p - 1$-th root of unity.
+						If you're familiar with the complex numbers or the integers modulo $p$, you might know some numbers that would satisfy the definition.  In the real numbers, there aren't any primitive $n$-th roots of unity for $n > 2$, but I promise these numbers are real even if they're not real numbers.
 					</p>
 
 					<p>
-						If you don't know what any of that means, that's fine! The nice thing about relying on the above definition is that we can derive important properties without any knowledge of complex numbers or $\mathbb Z / p \mathbb Z$. Let's look at the most basic of these properties:
+						For now, let's assume that for any $n > 0$, there exists a primitive $n$-th root of unity. Just by the definition above, we can derive important properties.
 					</p>
 
 					<div class="block">
@@ -188,14 +295,14 @@
 					</p>
 
 					<p>
-						 <b>Property 1.2:</b> $\om^0, \om^{-1}, \om^{-2}, \dots, \om^{-(n-1)}$ are also all the same distinct $n$-th roots of unity.
+						 <b>Property 1.2:</b> $\om^0, \om^{-1}, \om^{-2}, \dots, \om^{-(n-1)}$ are also all the same distinct $n$-th roots of unity (but in a different order).
 					</p>
 
 <a href="#">Proof</a>
 					</div>
 
 					<p>
-						This means that if we can find a primitive $n$-th root of unity, it gives us $n$ (not necessarily primitive) different $n$-th roots of unity. So from now on, if $\om$ is a primitive $n$-th root of unity, we'll call $\om^0, \om^1, \dots, \om^{n-1}$ "the $n$ roots of unity".
+						This means that if we can find a primitive $n$-th root of unity, it gives us $n$ different $n$-th roots of unity (not necessarily primitive). So from now on, if $\om$ is a primitive $n$-th root of unity, we'll call $\om^0, \om^1, \dots, \om^{n-1}$ "the $n$ roots of unity".
 					</p>
 
 					<p>
@@ -259,12 +366,12 @@
 					</p>
 
 					<p>
-						On the other hand, Property 3.2 is somewhat surprising. One basic consequence is that setting $k = 1$, the sum of the $n$ roots of unity is 0. We won't get to applying this fact until the interpolation section, so don't worry too much about it for now.
+						On the other hand, Property 3.2 is surprising. One basic consequence is that setting $k = 1$, the sum of the $n$ roots of unity is 0. We won't get to applying this fact until the interpolation section, so don't worry too much about it for now.
 					</p>
 				</div>
 			</div>
 
-			<div id="toc4" class="section">
+			<div id="toc6" class="section">
 				<div class="heading">Sampling Quickly</div>
 				<div class="subsection">
 
@@ -307,7 +414,7 @@
 					</p>
 
 					<p>
-						The last line in the equations above comes directly from Property 2.3 of roots of unity. Property 2.2 also tells us that $\up$ itself is a primitive $\frac n2$-th root of unity. Now we have a way to divide our problem in two subproblems and recombine their results to answer the problem. We can now write down a basic framework for our sampling algorithm.
+						The last line in the equations above comes directly from Property 2.3 of roots of unity. Property 2.2 also tells us that $\up$ itself is a primitive $\frac n2$-th root of unity. Now we have a way to divide our problem in two subproblems and recombine their results to answer the problem.
 					</p>
 
 					<div class="block">
@@ -335,6 +442,10 @@
 					</div>
 
 					<p>
+						There is one minor implementation issue we need to iron out. In Step 5, where we compute $f(\om^k) = f\even(\up^k) + \om^k f\odd(\up^k)$, $0 \leq k < n$, but
+					</p>
+
+					<p>
 						The time complexity of this algorithm is $O(n \log n)$. This is for the same reason that mergesort is $O(n \log n)$: we split into two subproblems, each of half size, then spend $O(n)$ combining them, making the recursion tree $O(\log n)$ in height and $O(n)$ in width at each level.
 					</p>
 
@@ -354,7 +465,7 @@
 				</div>
 			</div>
 
-			<div id="toc5" class="section">
+			<div id="toc7" class="section">
 				<div class="heading">Interpolation in $O(n^2)$</div>
 				<div class="subsection">
 
@@ -436,7 +547,7 @@
 				</div>
 			</div>
 
-			<div id="toc6" class="section">
+			<div id="toc8" class="section">
 				<div class="heading">Interpolating Quickly</div>
 				<div class="subsection">
 
@@ -605,6 +716,158 @@
 					</div>
 				</div>
 			</div>
+
+			<div id="toc9" class="section">
+				<div class="heading">Introduction to Complex Numbers</div>
+				<div class="subsection">
+
+					<p>
+						If you're already familiar with complex numbers, feel free to skip this section.
+					</p>
+
+					<p>
+						Let's talk about polynomials in a different way. If we want to solve for $x$ in an equation where the degree of $x$ is at most $n$, we can rearrange the equation so that the right hand side is $0$. For example, solving for $x$ in the equation $x^2 + 5 = x - x^3$ is the same as solving for $x$ in $x^3 + x^2 - x + 5 = 0$.
+					</p>
+
+					<p>
+						Therefore if $f(x) = a_0 + a_1x + \dots + a_nx^n$, we call the numbers $r_1, r_2, \dots$ the roots or solutions of $f(x)$. For polynomials of degree two, (also called quadratic polynomials), the solutions to $f(x) = c + bx + ax^2$ are exactly
+					</p>
+
+					<p>
+						$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+					</p>
+
+					<p>
+						which is commonly called the Quadratic Formula. Notably, if $b^2 - 4ac < 0$, there are no solutions since negative numbers have no square roots. However, by extending the real numbers by adding an imaginary unit $i$ that satisfies $i^2 = (-i)^2 = -1$, we have solutions for every quadratic polynomial.
+					</p>
+
+					<p>
+						It turns out that by introducing $i$ to solve polynomials of degree $2$, now every polynomial of degree $n$ has $n$ solutions (<a href="#">caveat</a>), and each solution can be expressed as $a + bi$ where $a$ and $b$ are regular numbers, and $i$ is the imaginary unit just described. These numbers are the complex numbers.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc10" class="section">
+				<div class="heading">Using Complex Numbers</div>
+				<div class="subsection">
+
+					<p>
+						What we really want is to find primitive roots of unity in the complex numbers. For example, $i$ itself is a primitive fourth root of unity since $i^1 = i, i^2 = -1, i^3 = -1, i^4 = 1$. For the general case, we can use the following formula:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Primitive Roots of Unity in the Complex Numbers</div>
+
+					<p>
+						For all $n \geq 1$, $\cos\left(\frac{2\pi}n\right) + \sin\left(\frac{2\pi}n\right) i$ is a primitive $n$-th root of unity.
+					</p>
+
+<a href="#">Proof</a>
+					</div>
+
+					<p>
+						For those unfamiliar, $\cos$ and $\sin$ are functions that have to do with circles, triangles, and angles. In particular, they accept any number as input and output a number between $-1$ and $1$ inclusive.
+					</p>
+
+					<p>
+						Usually there's something deep to be said about circles and geometry here, but we'll skip past that in this article. All we really need to know is that we can use C++'s $\text{complex&lt;double&gt;}$ to store complex numbers, and $\cos$ and $\sin$ are available as functions in the $\text{&lt;cmath&gt;}$ header in C++, so we finally have a concrete representation of primitive roots of unity now.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc11" class="section">
+				<div class="heading">Introduction to $\mathbb{Z} / p \mathbb{Z}$</div>
+				<div class="subsection">
+
+					<p>
+						If you're already familiar with the integers modulo a prime (or $\mathbb{Z} / p \mathbb{Z}$), feel free to skip this section.
+					</p>
+
+					<p>
+						There are an infinite number of integers, but if we restrict them to be between $0$ and $n - 1$ inclusive, interesting things happen. By "restrict to $0$ and $n - 1$, we mean that every time we do a math operation, if the result is outside of the range, we need to divide by $n$ and take the remainder. For example, if $n = 10$, then $3 \times 8 = 24$, but the remainder of $24$ dividing by $10$ is $4$, so our actual result is $4$.
+					</p>
+
+					<p>
+						Writing this as $3 \times 8 = 4$ is confusing, so we instead use the notation $3 \times 8 \equiv 4 \pmod{10}$. The $\pmod{10}$ stands for "modulo 10", which is a reminder that we're taking the remainder (also called modulus) dividing by $10$ at every point.
+					</p>
+
+					<p>
+						This new strange way of doing math is called "the integers modulo $n$" or by its fancy name $\mathbb{Z} / n \mathbb{Z}$. For example, we've just worked in $\mathbb{Z} / 10 \mathbb{Z}$. If the choice of $n$ is a prime number, we can instead call it "the integers modulo $p$" or $\mathbb{Z} / p \mathbb{Z}$.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc12" class="section">
+				<div class="heading">Primitive Roots of Unity in $\mathbb{Z} / p \mathbb{Z}$</div>
+				<div class="subsection">
+
+					<p>
+						The important question once again is: can we get primitive roots of unity in $\mathbb{Z} / p \mathbb{Z}$? If so, how can we get them?
+					</p>
+
+					<p>
+						For example, since
+					</p>
+
+					<p>
+						$$\begin{align}2^1 &\equiv 2 \pmod 5 \\2^2 &\equiv 4 \pmod 5 \\2^3 &\equiv 3 \pmod 5 \\2^4 &\equiv 1 \pmod 5\end{align}$$
+					</p>
+
+					<p>
+						$2$ is a primitive fourth root of unity in the integers modulo $5$. In general, we can say this:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Primitive Roots of Unity in $\mathbb{Z} / p \mathbb{Z}$</div>
+
+					<p>
+						For any prime number $p$, there exists a primitive $(p - 1)$-th root of unity in $\mathbb{Z} / p \mathbb{Z}$.
+					</p>
+
+					<p>
+						These are often called the "primitive roots modulo $p$.
+					</p>
+
+					<p>
+						 <a href="#">Proof</a> <br/> <a href="#">Finding primitive roots modulo $p$</a>
+					</p>
+					</div>
+
+					<p>
+						Unfortunately, finding these primitive roots modulo $p$ takes us off the path of this article, so if you want to learn about that, you can click the link given above. In general, there are quite a few primitive roots modulo $p$, especially if $p$ is large, so we can usually find one that's pretty small. For example, there are $36738560$ primitive roots modulo the prime $91847201$, the smallest of which is $3$.
+					</p>
+
+					<p>
+						Unlike with complex numbers, we run into an issue. Because of our sampling and interpolating algorithms so far, we want to find a primitive $n$-th root of unity where $n$ is a power of two. Since every prime $p$ gives us a primitive $(p-1)$-th root of unity, we must find primes that a power of two, plus one. Unfortunately, there are only $5$ such numbers known: $3, 5, 17, 257, 65537$, which aren't large enough. Our fix comes from the next fact:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Primitive Root of Unity Fact</div>
+
+					<p>
+						If $\om$ is a primitive $n$-th root of unity, and $n = am$, then $\om^a$ is a primitive $m$-th root of unity.
+					</p>
+
+<a href="#">Proof</a>
+					</div>
+
+					<p>
+						We've actually seen a special case of this before when we said that if $\om$ is a primitive $n$-th root of unity, then $\om^2$ is a primitive $\frac n2$-th root of unity.
+					</p>
+
+					<p>
+						So how can we apply this here? Well if we instead look for primes of the form of $c \times 2^k + 1$ where $c$ is an odd number and $2^k$ is a power of two, it means there must exist an $\om$ that's a primitive $c \times 2^k$-th root of unity, which by the above fact means we can obtain a primitive $2^t$-th root of unity for any $t \leq k$.
+					</p>
+
+					<p>
+						There are a lot more primes of the form $c \times 2^k + 1$. The most notorious of these primes is $998244353 = 119 \times 2^{23} + 1$ with $\om = 3$, which is used by various competitive programming platforms. We'll be using this prime for the rest of the article. A full list of usable primes can be found <a href="#">here</a>.
+					</p>
+				</div>
+			</div>
+
+			<div class="part">Part 2: Implementation</div>
+
+			<div class="part">Part 3: Limits</div>
 
 		</div>
 	</body>
