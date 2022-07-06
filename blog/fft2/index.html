@@ -46,6 +46,13 @@
 				<li><a href="#toc9">Using Complex Numbers</a></li>
 				<li><a href="#toc10">Introduction to $\mathbb{Z} / p \mathbb{Z}$</a></li>
 				<li><a href="#toc11">Primitive Roots of Unity in $\mathbb{Z} / p \mathbb{Z}$</a></li>
+				<li><a href="#toc12">Sampling Algorithm Adjustment</a></li>
+				<li><a href="#toc13">Interpolating Algorithm Adjustment</a></li>
+				<li><a href="#toc14">Notation</a></li>
+				<li><a href="#toc15">Basic Recursive Implementation</a></li>
+				<li><a href="#toc16">In-Place and $O(n)$ Space</a></li>
+				<li><a href="#toc17">Iterative Implementation</a></li>
+				<li><a href="#toc18">Iterative Implementation</a></li>
 			</ul>
 		</div>
 
@@ -866,6 +873,689 @@
 			</div>
 
 			<div class="part">Part 2: Implementation</div>
+
+			<div id="toc14" class="section">
+				<div class="heading">Sampling Algorithm Adjustment</div>
+				<div class="subsection">
+
+					<p>
+						We're almost ready to write real code. We just need two more adjustments before we can write our most basic implementation.
+					</p>
+
+					<p>
+						First, let's take one more look at the sampling algorithm from Part 1:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Sampling Algorithm</div>
+
+					<p>
+						We have an function $\text{Sample}$ that takes in $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ in the form of an array $[a_0, \dots, a_{n-1}]$ and a primitive $n$-th root of unity $\om$, and outputs the array of samples $[f(\om^0), \dots, f(\om^{n-1})]$. The algorithm is as follows:
+					</p>
+
+<ol id="alglist">
+
+<li>Base case: If $n = 1$, then there's only one coefficient and $f(x) = a_0$, so we just return $[a_0]$.
+
+<li>Divide the array $[a_0, \dots, a_{n-1}]$ into $[a_0, a_2, \dots, a_{n-2}]$ and $[a_1, a_3, \dots, a_{n-1}]$, representing $f\even(x)$ and $f\odd(x)$.</li>
+
+<li>Recursively call $\text{Sample}$ on the two new arrays, passing in $\up = \om^2$ as the primitive $\frac n2$-th root of unity.</li>
+
+<li>The results that we get are the samples $[f\even(\up^0), \dots, f\even(\up^{\frac n2})]$ and $[f\odd(\up^0), \dots, f\odd(\up^{\frac n2})]$.</li>
+
+<li>Using the above formula, for each $0 \leq k < n$, compute $f(\om^k) =f\even(\up^k) + \om^k f\odd(\up^k)$.</li>
+
+<li>Return $[f(\om^0), \dots, f(\om^{n-1})]$.</li>
+
+</ol>
+					</div>
+
+					<p>
+						There's actually a hidden issue with in Step 5. We'd like to find $f\even(\up^k) + \om^kf\odd(\up^k)$ for all $0 \leq k < n$ but in Step 4 we only know $f\even(\up^k)$ and $f\odd(\up^k)$ for $0 \leq k < \frac n2$. So even if the math is correct, we need a different formula for all $\frac n2 \leq k < n$. Let's do a little bit of math:
+					</p>
+
+					<p>
+						Since $\up$ is a $\frac n2$-th root of unity, $\up^{\frac n2} = 1$. So for $\frac n2 \leq k < n$, we have the formula $f(\om^k) = f\even(\up^{k - \frac n2}) + \om^kf\odd(\up^{k - \frac n2})$, which fixes our issue.
+					</p>
+
+					<p>
+						We can take this one step further. Due to Property 2.1, $\om^{\frac n2} = -1$, $\om^{k} = -\om^{k - \frac n2}$. Therefore, we have the formula $f(\om^k) = f\even(\up^{k - \frac n2}) - \om^{k - \frac n2} f\odd(\up^{k - \frac n2})$ for all $\frac n2 \leq k < n$.  Shifting everything over by $\frac n2$, we get that $f(\om^{k + \frac n2}) = f\even(\up^k) - \om^k f\odd(\up^k)$ for all $0 \leq k < \frac n2$.
+					</p>
+
+					<p>
+						We're ready to see our final version of the sampling algorithm:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Sampling Algorithm</div>
+
+					<p>
+						We have an function $\text{Sample}$ that takes in $f(x) = a_0 + \dots + a_{n-1}x^{n-1}$ in the form of an array $[a_0, \dots, a_{n-1}]$ and a primitive $n$-th root of unity $\om$, and outputs the array of samples $[f(\om^0), \dots, f(\om^{n-1})]$. The algorithm is as follows:
+					</p>
+
+<ol id="alglist">
+
+<li>Base case: If $n = 1$, then there's only one coefficient and $f(x) = a_0$, so we just return $[a_0]$.
+
+<li>Divide the array $[a_0, \dots, a_{n-1}]$ into $[a_0, a_2, \dots, a_{n-2}]$ and $[a_1, a_3, \dots, a_{n-1}]$, representing $f\even(x)$ and $f\odd(x)$.</li>
+
+<li>Recursively call $\text{Sample}$ on the two new arrays, passing in $\up = \om^2$ as the primitive $\frac n2$-th root of unity.</li>
+
+<li>The results that we get are the samples $[f\even(\up^0), \dots, f\even(\up^{\frac n2})]$ and $[f\odd(\up^0), \dots, f\odd(\up^{\frac n2})]$.</li>
+
+<li>Using the above formula, for each $0 \leq k < \frac n2$, compute
+
+<ul>
+
+<li>$f(\om^k) =f\even(\up^k) + \om^k f\odd(\up^k)$</li>
+
+<li>$f(\om^{k + \frac n2}) =f\even(\up^k) - \om^k f\odd(\up^k)$</li>
+
+</ul>
+
+</li>
+
+<li>Return $[f(\om^0), \dots, f(\om^{n-1})]$.</li>
+
+</ol>
+					</div>
+				</div>
+			</div>
+
+			<div id="toc15" class="section">
+				<div class="heading">Interpolating Algorithm Adjustment</div>
+				<div class="subsection">
+
+					<p>
+						Let's look at our interpolating algorithm from Part 1:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Interpolating Algorithm</div>
+
+					<p>
+						We have an function $\text{Interpolate}$ that takes in an array $[v_0, v_1, \dots v_{n-1}]$  and a primitive $n$-th root of unity $\om$, representing that $f(\om^k) = v_k$ for $0 \leq k < n$ and outputs $f(x) = a_0 + a_1x + \dots + a_{n-1}x^{n-1}$ in the form of an array $[a_0, a_1, \dots, a_{n-1}$.
+					</p>
+
+					<p>
+						We reinterpret the input array $[v_0, v_1, \dots, v_{n-1}$ as a polynomial $g(x) = v_0 + v_1x + \dots + v_{n-1}x^{n-1}$ and the output array $[a_0, a_1, \dots, a_{n-1}$ as samples where $a_k = g(\om^{-k})$ for $0 \leq k < n$.
+					</p>
+
+<ol id="alglist">
+
+<li>Base case: If $n = 1$, then there's only one coefficient and $g(x) = v_0$, so we just return $[v_0]$.
+
+<li>Divide the array $[v_0, \dots, v_{n-1}]$ into $[v_0, v_2, \dots, v_{n-2}]$ and $[v_1, v_3, \dots, v_{n-1}]$, representing $g\even(x)$ and $g\odd(x)$.</li>
+
+<li>Recursively call $\text{Interpolate}$ on the two new arrays, passing in $\up = \om^2$ as the primitive $\frac n2$-th root of unity.</li>
+
+<li>The results that we get are the samples $[g\even(\up^0), \dots, g\even(\up^{\frac n2})]$ and $[g\odd(\up^0), \dots, g\odd(\up^{\frac n2})]$.</li>
+
+<li>Using the above formula, for each $0 \leq k < n$, compute $g(\om^{-k}) =g\even(\up^{-k}) + \om^{-k} g\odd(\up^{-k})$.</li>
+
+<li>Divide each $g(\om^{-k})$ by $n$. Return $\left[\dfrac{g(\om^0)}n, \dfrac{g(\om^{-1})}n, \dots, \dfrac{g(\om^{-(n-1)})}n\right]$.</li>
+
+</ol>
+					</div>
+
+					<p>
+						We knew in Part 1 that this algorithm is extremely similar to the sampling algorithm, which is conceptually nice, but now that we're writing code, we want to reuse as much code as possible between these two algorithms.
+					</p>
+
+					<p>
+						In this case, we notice that since $\om^n = 1$, $\om^{n-k} = \om^k$. Therefore, $[g(\om^0), g(\om^{-1}), g(\om^{-2}), \dots, g(\om^{-(n-1)})]$ is the exact same as $[g(\om^0), g(\om^{n-1}), g(\om^{n-2}), \dots, g(\om^{1})]$. So instead of writing an interpolating algorithm, we can just call the sampling algorithm, switch up the order of the result, then divide everything by $n$. Our final version of the algorithm is much simpler:
+					</p>
+
+					<div class="block">
+						<div class="block-heading">Interpolating Algorithm</div>
+
+					<p>
+						We have an function $\text{Interpolate}$ that takes in an array $[v_0, v_1, \dots v_{n-1}]$  and a primitive $n$-th root of unity $\om$, representing that $f(\om^k) = v_k$ for $0 \leq k < n$ and outputs $f(x) = a_0 + a_1x + \dots + a_{n-1}x^{n-1}$ in the form of an array $[a_0, a_1, \dots, a_{n-1}]$.
+					</p>
+
+					<p>
+						We reinterpret the input array $[v_0, v_1, \dots, v_{n-1}]$ as a polynomial $g(x) = v_0 + v_1x + \dots + v_{n-1}x^{n-1}$ and the output array $[a_0, a_1, \dots, a_{n-1}]$ as samples where $a_k = g(\om^{-k})$ for $0 \leq k < n$.
+					</p>
+
+<ol id="alglist">
+
+<li>Call $\text{Sampling}(v_0, v_1, \dots, v_{n-1})$, giving us $[g(\om^0), g(\om^1), \dots, g^{n-1})]$.
+
+<li>Reverse indexes $1$ through $n - 1$, giving us $[g(\om^0), g(\om^{n-1}), g(\om^{n-2}), \dots, g(\om^1)]$, which is the same as $[g(\om^0), g(\om^{-1}), g(\om^{-2}), \dots, g(\om^{-(n-1)})]$.
+
+<li>Divide each $g(\om^{-k})$ by $n$. Return $\left[\dfrac{g(\om^0)}n, \dfrac{g(\om^{-1})}n, \dots, \dfrac{g(\om^{-(n-1)})}n\right]$.</li>
+
+</ol>
+					</div>
+				</div>
+			</div>
+
+			<div id="toc16" class="section">
+				<div class="heading">Notation</div>
+				<div class="subsection">
+
+				</div>
+			</div>
+
+			<div id="toc17" class="section">
+				<div class="heading">Basic Recursive Implementation</div>
+				<div class="subsection">
+
+					<p>
+						For the rest of this part of the article, we'll be focusing on solving <a href="https://judge.yosupo.jp/problem/convolution_mod">this problem</a>. While all the code samples have been tested to be correct implementations of the algorithm, it won't pass all the test cases for the problem. The reason why this is the case will be explained in Part 3: Limits.
+					</p>
+
+					<pre class="line-numbers" data-line="none"><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;cmath&gt;
+#include &lt;algorithm&gt;
+#include &lt;complex&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int MOD = 998244353;
+const double PI = acos(-1);
+
+vector&lt;complex&lt;double&gt;&gt; fft(vector&lt;complex&lt;double&gt;&gt; arr){
+	int n = arr.size();
+	// Base case is when n = 1
+	if(n == 1) return arr;
+
+	// Split into f_even and f_odd
+	vector&lt;complex&lt;double&gt;&gt; arrEven(n/2), arrOdd(n/2);
+	for(int i = 0; i &lt; n/2; i++){
+		arrEven[i] = arr[i * 2];
+		arrOdd[i]  = arr[i * 2 + 1];
+	}
+
+	// Recursively call on both halves
+	arrEven = fft(arrEven);
+	arrOdd = fft(arrOdd);
+
+	vector&lt;complex&lt;double&gt;&gt; result(n);
+
+	// Primitive n-th root of unity
+	complex&lt;double&gt; proot (cos(2 * M_PI / n), sin(2 * M_PI / n));
+	// This variable keeps track of proot^k
+	complex&lt;double&gt; root (1, 0);
+
+	for(int k = 0; k &lt; n/2; k++){
+		result[k]       = arrEven[k] + root * arrOdd[k];
+		result[k + n/2] = arrEven[k] - root * arrOdd[k];
+		root *= proot;
+	}
+
+	return result;
+}
+
+vector&lt;complex&lt;double&gt;&gt; ifft(vector&lt;complex&lt;double&gt;&gt; arr){
+	int n = arr.size();
+	arr = fft(arr);
+	// Reverse arr[1], arr[2], ... arr[n - 1]
+	reverse(arr.begin() + 1, arr.end());
+	for(int i = 0; i &lt; n; i++)
+		arr[i] /= n;
+
+	return arr;
+}
+
+// The arguments and return value for this function will always
+// remain the same throughout the article
+
+vector&lt;int&gt; mult(vector&lt;int&gt; arr, vector&lt;int&gt; brr){
+	int target = 2 * max(arr.size(), brr.size()), sz = 1;
+	// The number of samples is the first power of 2 at least 2 * max(N, M)
+	while(sz &lt; target) sz *= 2;
+
+	// Convert from int arrays to complex&lt;double&gt; arrays
+	vector&lt;complex&lt;double&gt;&gt; arrc, brrc;
+	for(int n : arr)
+		arrc.push_back(n);
+	for(int n : brr)
+		brrc.push_back(n);
+
+	// Resize array to the number of desired samples
+	arrc.resize(sz);
+	brrc.resize(sz);
+
+	// Sample, pointwise multiply, and interpolate
+	arrc = fft(arrc);
+	brrc = fft(brrc);
+	for(int i = 0; i &lt; sz; i++)
+		arrc[i] *= brrc[i];
+	arrc = ifft(arrc);
+
+	// Round result to int
+	vector&lt;int&gt; result;
+	// The product of polynomial of size N and M has size N + M - 1
+	int realSz = arr.size() + brr.size() - 1;
+	for(int i = 0; i &lt; realSz; i++){
+		long long rounded = arrc[i].real() + 0.5;
+		result.push_back((rounded % MOD + MOD) % MOD);
+	}
+
+	return result;
+}
+
+int main(){
+	int N, M, n;
+	vector&lt;int&gt; arr, brr;
+	scanf("%d %d", &amp;N, &amp;M);
+	for(int i = 0; i &lt; N; i++){
+		scanf("%d", &amp;n);
+		arr.push_back(n);
+	}
+	for(int i = 0; i &lt; M; i++){
+		scanf("%d", &amp;n);
+		brr.push_back(n);
+	}
+	vector&lt;int&gt; crr = mult(arr, brr);
+	for(int c : crr)
+		printf("%d ", c);
+}</code></pre>
+
+					<p>
+						The $\texttt{#include}$ lines and $\texttt{main()}$ are common to all the implementations, so we'll be omitting them from the code samples later on in the article. It's probably a good idea to use $\texttt{typedef}$ for things like $\texttt{complex&lt;double&gt;}$, but for the sake of clarity, we'll avoid using it in this article.
+					</p>
+
+					<p>
+						We've finally arrived at the goal set out at beginning of the article: this code multiplies two polynomials in $O(n \log n)$ time. However, we're far from done. We're not going to get any better than $O(n \log n)$, but we still have a lot to improve.
+					</p>
+				</div>
+			</div>
+
+			<div id="toc18" class="section">
+				<div class="heading">In-Place and $O(n)$ Space</div>
+				<div class="subsection">
+
+					<p>
+						As it stands, our implementation has some performance issues. We waste a lot of time passing in and returning arrays. Additionally, since we create a temporary array before the recursive calls, our space usage ends up being $O(n \log n)$.
+					</p>
+
+					<p>
+						To prevent this from happening, we're changing the $\texttt{fft}$ and $\texttt{ifft}$ function to be in-place, meaning the argument passed in will now be pass-by-reference and it doesn't return anything.
+					</p>
+
+					<pre class="line-numbers" data-line="1,4,14-15,29,31,55-56,59"><code class="language-cpp">void fft(vector&lt;complex&lt;double&gt;&gt; &amp;arr){
+	int n = arr.size();
+	// Base case is when n = 1
+	if(n == 1) return;
+
+	// Split into f_even and f_odd
+	vector&lt;complex&lt;double&gt;&gt; arrEven(n/2), arrOdd(n/2);
+	for(int i = 0; i &lt; n/2; i++){
+		arrEven[i] = arr[i * 2];
+		arrOdd[i]  = arr[i * 2 + 1];
+	}
+
+	// Recursively call on both halves
+	fft(arrEven);
+	fft(arrOdd);
+
+	// Primitive n-th root of unity
+	complex&lt;double&gt; proot (cos(2 * M_PI / n), sin(2 * M_PI / n));
+	// This variable keeps track of proot^k
+	complex&lt;double&gt; root (1, 0);
+
+	for(int k = 0; k &lt; n/2; k++){
+		arr[k]       = arrEven[k] + root * arrOdd[k];
+		arr[k + n/2] = arrEven[k] - root * arrOdd[k];
+		root *= proot;
+	}
+}
+
+void ifft(vector&lt;complex&lt;double&gt;&gt; &amp;arr){
+	int n = arr.size();
+	fft(arr);
+	// Reverse arr[1], arr[2], ... arr[n - 1]
+	reverse(arr.begin() + 1, arr.end());
+	for(int i = 0; i &lt; n; i++)
+		arr[i] /= n;
+}
+
+vector&lt;int&gt; mult(vector&lt;int&gt; arr, vector&lt;int&gt; brr){
+	int target = 2 * max(arr.size(), brr.size()), sz = 1;
+	// The number of samples is the first power of 2 at least 2 * max(N, M)
+	while(sz &lt; target) sz *= 2;
+
+	// Convert from int arrays to complex&lt;double&gt; arrays
+	vector&lt;complex&lt;double&gt;&gt; arrc, brrc;
+	for(int n : arr)
+		arrc.push_back(n);
+	for(int n : brr)
+		brrc.push_back(n);
+
+	// Resize array to the number of desired samples
+	arrc.resize(sz);
+	brrc.resize(sz);
+
+	// Sample, pointwise multiply, and interpolate
+	fft(arrc);
+	fft(brrc);
+	for(int i = 0; i &lt; sz; i++)
+		arrc[i] *= brrc[i];
+	ifft(arrc);
+
+	// Round result to int
+	vector&lt;int&gt; result;
+	// The product of polynomial of size N and M has size N + M - 1
+	int realSz = arr.size() + brr.size() - 1;
+	for(int i = 0; i &lt; realSz; i++){
+		long long rounded = arrc[i].real() + 0.5;
+		result.push_back((rounded % MOD + MOD) % MOD);
+	}
+
+	return result;
+}</code></pre>
+
+					<p>
+						However, we haven't gotten rid of the temporary arrays, so the space usage is still $O(n \log n)$. What we need to do is use temporary arrays to rearrange $\texttt{arr}$ and reuse $\texttt{arr}$ as much as possible.
+					</p>
+
+					<p>
+						In particular, each $\texttt{fft}$ call won't do the sampling algorithm on the entire array, but will only do it on the part of $\texttt{arr}$ specified by the additional arguments.
+					</p>
+
+					<pre class="line-numbers" data-line="None"><code class="language-cpp">// Moves elements around in arr[off], arr[off + 1], ... arr[off + n - 1]
+// so that the first half represents arrEven and the second half represents arrOdd
+void reorder(vector&lt;complex&lt;double&gt;&gt; &amp;arr, int off, int n){
+	// These temporary arrays will be deallocated when the function ends
+	vector&lt;complex&lt;double&gt;&gt; arrEven(n/2), arrOdd(n/2);
+
+	for(int i = 0; i &lt; n/2; i++){
+		arrEven[i] = arr[off + i * 2];
+		arrOdd[i]  = arr[off + i * 2 + 1];
+	}
+
+	for(int i = 0; i &lt; n/2; i++){
+		arr[off + i]       = arrEven[i];
+		arr[off + i + n/2] = arrOdd[i];
+	}
+}
+
+// Now we aren't doing fft on the entire array, just a part of it
+// Two new arguments: the offset (start index) and size that we're doing fft
+// We only do fft on arr[off], arr[off + 1], ... arr[off + n - 1]
+void fft(vector&lt;complex&lt;double&gt;&gt; &amp;arr, int off, int n){
+	// Base case is when n = 1
+	if(n == 1) return;
+
+	// Reorder arr so the first half is arrEven and second half is arrOdd
+	reorder(arr, off, n);
+
+	// Recursively call on both halves
+	fft(arr, off, n/2);         // call on first half of arr (arrEven)
+	fft(arr, off + n/2, n/2);   // call on second half of arr (arrOdd)
+
+	// Primitive n-th root of unity
+	complex&lt;double&gt; proot (cos(2 * M_PI / n), sin(2 * M_PI / n));
+	// This variable keeps track of proot^k
+	complex&lt;double&gt; root (1, 0);
+
+	for(int k = 0; k &lt; n/2; k++){
+		// Since arrEven lies in the first half or arr and arrOdd lies in the second half of arr,
+		// For 0 &lt;= k &lt; n/2, arr[k] = arrEven[k] and arr[k + n/2] = arrOdd[k]
+
+		// Very conveniently, arr[k] and arr[k + n/2] only depend on arr[k] and arr[k + n/2]
+		// so we don't need another temporary array
+		complex&lt;double&gt; arrK         = arr[off + k];
+		complex&lt;double&gt; arrKPlusHalf = arr[off + k + n/2];
+
+		arr[off + k]       = arrK + root * arrKPlusHalf;
+		arr[off + k + n/2] = arrK - root * arrKPlusHalf;
+
+		root *= proot;
+	}
+}
+
+// Overload with no additional arguments, fft the entire array
+void fft(vector&lt;complex&lt;double&gt;&gt; &amp;arr){
+	fft(arr, 0, arr.size());
+}</code></pre>
+				</div>
+			</div>
+
+			<div id="toc19" class="section">
+				<div class="heading">Iterative Implementation</div>
+				<div class="subsection">
+
+					<p>
+						Let's do some code tracing for our implementation in the previous section, for example, $\texttt{fft(arr)}$ on an 8-element array. For the sake of the illustration, we shorten $\texttt{fft}$ to $\texttt{f}$ and $\texttt{arr}$ to $\texttt{a}$.
+					</p>
+
+<table id="trace">
+
+<tr>
+
+<td colspan="8">
+
+					<p>
+						$\texttt{f(a, 0, 8)}$ <br/> $a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]$
+					</p>
+
+</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="4">&LowerLeftArrow; </td>
+
+<td colspan="4">&LowerRightArrow;</td>
+
+</tr>
+
+<tr>
+
+<td colspan="4">$\texttt{f(a, 0, 4)}$ <br/> $a[0], a[2], a[4], a[6]$</td>
+
+<td colspan="4">$\texttt{f(a, 4, 4)}$ <br/> $a[1], a[3], a[5], a[7]$</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="2">&LowerLeftArrow; </td>
+
+<td colspan="2">&LowerRightArrow;</td>
+
+<td colspan="2">&LowerLeftArrow; </td>
+
+<td colspan="2">&LowerRightArrow;</td>
+
+</tr>
+
+<tr>
+
+<td colspan="2">$\texttt{f(a, 0, 2)}$ <br/> $a[0], a[4]$</td>
+
+<td colspan="2">$\texttt{f(a, 2, 2)}$ <br/> $a[2], a[6]$</td>
+
+<td colspan="2">$\texttt{f(a, 4, 2)}$ <br/> $a[1], a[5]$</td>
+
+<td colspan="2">$\texttt{f(a, 6, 2)}$ <br/> $a[3], a[7]$</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+</tr>
+
+<tr>
+
+<td colspan="1">$\texttt{f(a, 0, 1)}$ <br/> $a[0]$</td>
+
+<td colspan="1">$\texttt{f(a, 1, 1)}$ <br/> $a[4]$</td>
+
+<td colspan="1">$\texttt{f(a, 2, 1)}$ <br/> $a[2]$</td>
+
+<td colspan="1">$\texttt{f(a, 3, 1)}$ <br/> $a[6]$</td>
+
+<td colspan="1">$\texttt{f(a, 4, 1)}$ <br/> $a[1]$</td>
+
+<td colspan="1">$\texttt{f(a, 5, 1)}$ <br/> $a[5]$</td>
+
+<td colspan="1">$\texttt{f(a, 6, 1)}$ <br/> $a[3]$</td>
+
+<td colspan="1">$\texttt{f(a, 7, 1)}$ <br/> $a[7]$</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+<td colspan="1">&darr;</td>
+
+</tr>
+
+<tr>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 0, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 1, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 2, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 3, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 4, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 5, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 6, 1)}$</td>
+
+<td colspan="1">Result of <br/> $\texttt{f(a, 7, 1)}$</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+<td colspan="1">&LowerRightArrow;</td>
+
+<td colspan="1">&LowerLeftArrow; </td>
+
+</tr>
+
+<tr>
+
+<td colspan="2">Result of <br/> $\texttt{f(a, 0, 2)}$</td>
+
+<td colspan="2">Result of <br/> $\texttt{f(a, 2, 2)}$</td>
+
+<td colspan="2">Result of <br/> $\texttt{f(a, 4, 2)}$</td>
+
+<td colspan="2">Result of <br/> $\texttt{f(a, 6, 2)}$</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="2">&LowerRightArrow;</td>
+
+<td colspan="2">&LowerLeftArrow; </td>
+
+<td colspan="2">&LowerRightArrow;</td>
+
+<td colspan="2">&LowerLeftArrow; </td>
+
+</tr>
+
+<tr>
+
+<td colspan="4">Result of <br/> $\texttt{f(a, 0, 4)}$</td>
+
+<td colspan="4">Result of <br/> $\texttt{f(a, 4, 4)}$</td>
+
+</tr>
+
+<tr class="shortrow">
+
+<td colspan="4">&LowerRightArrow;</td>
+
+<td colspan="4">&LowerLeftArrow; </td>
+
+</tr>
+
+<tr>
+
+<td colspan="8">
+
+					<p>
+						Result of <br/> $\texttt{f(a, 0, 8)}$
+					</p>
+
+</td>
+
+</tr>
+
+</table>
+
+					<p>
+						We now can see that the "divide" part of our divide and conquer is just moving elements around. Here, with 8 elements, each element was moved at most 3 times. In general, we need to move all the elements $O(\log n)$ times each. Additionally, each time $\texttt{fft}$ was called with $\texttt{n = 1}$, we hit the base case, where the function just did nothing and returned.
+					</p>
+
+					<p>
+						Both of these seem wasteful, so now we want to devise an algorithm that does the following:
+					</p>
+
+<ol>
+
+<li>Moves each element of $\texttt{arr}$ to where it will eventually end up at the end of all the "divide" steps of the divide and conquer</li>
+
+<li>Do the "merging" step of our divide and conquer, which is applying the formulas $f(\om^k) =f\even(\up^k) + \om^k f\odd(\up^k)$ and $f(\om^{k + \frac n2}) =f\even(\up^k) - \om^k f\odd(\up^k)$.</li>
+
+<li>We don't even need to do this recursively, we can do all the merges of size 2, then size 4, then 8, and so on up to the final size $n$ merge.</li>
+
+</ol>
+				</div>
+			</div>
+
+			<div id="toc20" class="section">
+				<div class="heading">Iterative Implementation</div>
+				<div class="subsection">
+
+				</div>
+			</div>
 
 			<div class="part">Part 3: Limits</div>
 

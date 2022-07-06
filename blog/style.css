@@ -110,3 +110,7 @@ li {
 .MJXc-display{
 	padding-bottom: 10px !important;
 }
+
+.line-numbers .line-numbers-rows {
+	top: -2.5px !important;
+}

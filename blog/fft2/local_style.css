@@ -8,15 +8,36 @@
 
 table {
 	margin: 0px auto 0px auto;
-	/* border-collapse: collapse; */
 }
 
 td {
 	border: 1px solid lightgray;
 	padding: 9px 7px 5px 7px;
 	text-align: center;
+	border-radius: 3px;
 }
 
 #dotsrow td {
 	padding: 0px 7px 5px 7px;
+}
+
+pre.language-cpp {
+	border: 1px solid black; 
+	border-radius: 10px !important;
+	width: 90%;
+	margin: 10px auto 10px auto !important;
+}
+
+#trace {
+	table-layout: fixed;
+	border-spacing: 10px 0px;
+}
+
+#trace td {
+	border: 1px solid gray;
+}
+
+#trace .shortrow td{
+	padding: 0px;
+	border: none;
 }
