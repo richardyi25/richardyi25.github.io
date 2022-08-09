@@ -28,16 +28,24 @@ pre.language-cpp {
 	margin: 10px auto 10px auto !important;
 }
 
-#trace {
+.trace {
 	table-layout: fixed;
 	border-spacing: 10px 0px;
 }
 
-#trace td {
+.trace td {
 	border: 1px solid gray;
+	background-color: #F8EDDC;
 }
 
-#trace .shortrow td{
+.trace .shortrow td{
 	padding: 0px;
+	border: none; 
+	background-color: transparent;
+}
+
+.trace .midrow td{
+	padding: 10px 0px 10px 0px;
 	border: none;
+	background-color: transparent;
 }

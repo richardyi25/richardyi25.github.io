@@ -13,6 +13,9 @@ $$
 \newcommand{\up}{\upsilon}
 \newcommand{\odd}{_{\text{odd}}}
 \newcommand{\even}{_{\text{even}}}
+\newcommand{\b}{\mathrm{b}}
+\newcommand{\and}{\texttt{&}}
+\newcommand{\or}{\texttt{|}}
 $$
 #end latex-preamble
 #toc
@@ -25,24 +28,13 @@ In the context of competitive programming, the Fast Fourier Transform, or FFT, i
 #end section
 
 #section Prerequisite Knowledge
-You should be familiar with:
+You should be moderately familiar with:
 <ul>
 <li>Time complexity</li>
 	<li>Divide and conquer</li>
-	<li>Polynomials</li>
+	<li>Complex numbers</li>
+	<li>Modulo arithmetic<li>
 	<li>Binary numbers and bitmasks</li>
-</ul>
-
-Knowledge of the these may help, but isn't required:
-<ul>
-	<li>Complex numbers and trigonometry</li>
-	<li>Number theory, specifically, properties of $\mathbb Z/p\mathbb Z$</li>
-</ul>
-
-These topics are specifically avoided:
-<ul>
-	<li>Linear algebra</li>
-	<li>Vandermonde Matrix</li>
 </ul>
 
 This article features code in C++.
@@ -572,7 +564,9 @@ We reinterpret the input array $[v_0, v_1, \dots, v_{n-1}]$ as a polynomial $g(x
 #end section
 
 #section Basic Recursive Implementation
-For the rest of this part of the article, we'll be focusing on solving <a href="https://judge.yosupo.jp/problem/convolution_mod">this problem</a>. While all the code samples have been tested to be correct implementations of the algorithm, it won't pass all the test cases for the problem. The reason why this is the case will be explained in Part 3: Limits. 
+For the rest of this part of the article, we'll be focusing on solving <a href="https://judge.yosupo.jp/problem/convolution_mod">this problem</a>.
+
+While all the code samples have been tested to be correct implementations of the algorithm, it won't pass all the test cases for the problem. The reason why this is the case will be explained in Part 3: Limits. 
 
 #code none
 #include <cstdio>
@@ -830,12 +824,14 @@ void fft(vector<complex<double>> &arr){
 	fft(arr, 0, arr.size());
 }
 #end code
+
+Since the temporary arrays are deallocated before the recursive call, the space usage is $O(n)$ and not $O(n \log n)$.
 #end section
 
 #section Iterative Implementation
 Let's do some code tracing for our implementation in the previous section, for example, $\texttt{fft(arr)}$ on an 8-element array. For the sake of the illustration, we shorten $\texttt{fft}$ to $\texttt{f}$ and $\texttt{arr}$ to $\texttt{a}$.
 
-<table id="trace">
+<table class="trace">
 	<tr>
 		<td colspan="8">
 			$\texttt{f(a, 0, 8)}$ <br/> $a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]$
@@ -949,9 +945,124 @@ Both of these seem wasteful, so now we want to devise an algorithm that does the
 #end section
 
 #section Iterative Implementation
+In our iterative implementation, we want the logic to look something like this:
 
+<table class="trace">
+	<tr>
+		<td colspan="1">$a[0]$</td>
+		<td colspan="1">$a[1]$</td>
+		<td colspan="1">$a[2]$</td>
+		<td colspan="1">$a[3]$</td>
+		<td colspan="1">$a[4]$</td>
+		<td colspan="1">$a[5]$</td>
+		<td colspan="1">$a[6]$</td>
+		<td colspan="1">$a[7]$</td>
+	</tr>
+	<tr class="midrow">
+		<td colspan="8">Rearrange $a[]$ so that elements end up where they need to be before merges</td>
+	</tr>
+	<tr>
+		<td colspan="1">$a[0]$</td>
+		<td colspan="1">$a[4]$</td>
+		<td colspan="1">$a[2]$</td>
+		<td colspan="1">$a[6]$</td>
+		<td colspan="1">$a[1]$</td>
+		<td colspan="1">$a[5]$</td>
+		<td colspan="1">$a[3]$</td>
+		<td colspan="1">$a[7]$</td>
+	</tr>
+	<tr class="shortrow">
+		<td colspan="1">&LowerRightArrow;</td>
+		<td colspan="1">&LowerLeftArrow; </td>
+		<td colspan="1">&LowerRightArrow;</td>
+		<td colspan="1">&LowerLeftArrow; </td>
+		<td colspan="1">&LowerRightArrow;</td>
+		<td colspan="1">&LowerLeftArrow; </td>
+		<td colspan="1">&LowerRightArrow;</td>
+		<td colspan="1">&LowerLeftArrow; </td>
+	</tr>
+	<tr>
+		<td colspan="2">Result of <br/> $\texttt{f(a, 0, 2)}$</td>
+		<td colspan="2">Result of <br/> $\texttt{f(a, 2, 2)}$</td>
+		<td colspan="2">Result of <br/> $\texttt{f(a, 4, 2)}$</td>
+		<td colspan="2">Result of <br/> $\texttt{f(a, 6, 2)}$</td>
+	</tr>
+	<tr class="shortrow">
+		<td colspan="2">&LowerRightArrow;</td>
+		<td colspan="2">&LowerLeftArrow; </td>
+		<td colspan="2">&LowerRightArrow;</td>
+		<td colspan="2">&LowerLeftArrow; </td>
+	</tr>
+	<tr>
+		<td colspan="4">Result of <br/> $\texttt{f(a, 0, 4)}$</td>
+		<td colspan="4">Result of <br/> $\texttt{f(a, 4, 4)}$</td>
+	</tr>
+	<tr class="shortrow">
+		<td colspan="4">&LowerRightArrow;</td>
+		<td colspan="4">&LowerLeftArrow; </td>
+	</tr>
+	<tr>
+		<td colspan="8">
+			Result of <br/> $\texttt{f(a, 0, 8)}$
+		</td>
+	</tr>
+</table>
+
+Our code is surprisingly shorter, with the un-highlighted lines being carried over from the previous implementation.
+
+#code 1-15,30-31
+// Reorder all elements to end up where they need to be right before merges
+void reorder_all(vector<complex<double>> &arr){
+	// To be filled in next section
+}
+
+void fft(vector<complex<double>> &arr){
+	int total_sz = arr.size();
+
+	// Reorder all elements first
+	reorder_all(arr);
+
+	// The two outer loops effectively replace the recursive calls
+	// of fft(arr, off, n) from the previous implementation
+	for(int n = 2; n <= total_sz; n *= 2){
+		for(int off = 0; off < total_sz; off += n){
+			// Primitive n-th root of unity
+			complex<double> proot (cos(2 * M_PI / n), sin(2 * M_PI / n));
+			// This variable keeps track of proot^k
+			complex<double> root (1, 0);
+			
+			for(int k = 0; k < n/2; k++){
+				complex<double> arrK         = arr[off + k];
+				complex<double> arrKPlusHalf = arr[off + k + n/2];
+
+				arr[off + k]       = arrK + root * arrKPlusHalf;
+				arr[off + k + n/2] = arrK - root * arrKPlusHalf;
+
+				root *= proot;
+			}
+		}
+	}
+}
+#end code
+
+We replace our recursive call structure using the two outer loops. The outermost loop iterates through merge sizes, going from 2, to 4, to 8, and so on until $n$. The second outermost loop iterates through the offset, or starting index of each merge, starting at 0, and increasing by $\texttt{sz}$ each iteration, up to $\texttt{n}$.
+
+We've left out what the order of the elements of $\texttt{arr}$ should be as well as how to arrange the elements into that order. The answer surprisingly has to do with the binary representation of numbers.
 #end section
 
-#part Part 3: Limits
+// #section Binary Representation of Numbers
+// If you are familiar with the binary representation of numbers, bitwise operations, and hexadecimal, you can skip this section.
+// 
+// When we write down numbers, we implicitly know that each digit has ten times the value as the one to the right. For example, the number $123$ means $(1 \times 10^2) + (2 \times 10^1) + (3 \times 10^0)$. The choice of $10$ is natural but ultimately arbitrary. In a base-$n$ system, the digits $d_kd_{k-1}\dots d_1d_0$ would represent $d_kn^k + d_{k-1}n^{k-1} + \dots + d_1n^1 + d_0n^0$, with the restriction that $0 \leq d_k, \dots, d_0 < n$.
+// 
+// For various reasons, computers internally store integers in base-2. This means a 32-bit number is stored as $d_{31}d_{30}\dots d_1d_0$ representing $d_{31}2^{31} + d_{30}2^{30} + \dots + d_12^1 + d_02^0$ with the restriction that each digit is either a 0 or a 1. As an example, the binary number $1101$ represents $(1 \times 2^3) + (1 \times 2^2) + (0 \times 2^1) + (1 \times 2^0) = 13$.
+// 
+// For notation, we'll add "$0\b$" to the start of a binary number for emphasis. For example, we might write the previous example as $0\b1101 = 13$. Additionally, the common name for the digit of a binary number is bit (short for binary digit).
+// 
+// // TODO explain bitwise operations
+// Consider two 1-bit numbers, that is, two numbers in binary that are either 0 or 1. Let's call these numbers $a$ and $b$. In addition to being able to add, subtract, and multiply them normally, we also have the operation <i>bitwise OR</i> and <i>bitwise AND</i>. The output of $a$ bitwise OR $b$, (denoted as $a \and b$) is $1$
+// 
+// #end section
 
+#part Part 3: Limits
 #end main
